@@ -1,47 +1,47 @@
-use std::io::{self, stdout};
-use ratatui::{
-    crossterm::{
-        event::{self, Event, KeyCode},
-        terminal::{
-            disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
-        },
-        ExecutableCommand,
-    },
-    prelude::*,
-    widgets::*,
-};
-
-fn main() -> io::Result<()> {
-    enable_raw_mode()?;
-    stdout().execute(EnterAlternateScreen)?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-
-    let mut should_quit = false;
-    while !should_quit {
-        terminal.draw(ui)?;
-        should_quit = handle_events()?;
+use std::io::Read;
+fn list_files(current_dir: &str) -> Vec<String> {
+    let mut files = Vec::new();
+    for entry in std::fs::read_dir(current_dir).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        files.push(path.display().to_string());
     }
-
-    disable_raw_mode()?;
-    stdout().execute(LeaveAlternateScreen)?;
-    Ok(())
+    return files;
 }
-
-fn handle_events() -> io::Result<bool> {
-    if event::poll(std::time::Duration::from_millis(50))? {
-        if let Event::Key(key) = event::read()? {
-            if key.kind == event::KeyEventKind::Press && key.code == KeyCode::Char('q') {
-                return Ok(true);
-            }
-        }
-    }
-    Ok(false)
+fn create_file(file_name: &str) {
+    std::fs::File::create(file_name).unwrap();
 }
-
-fn ui(frame: &mut Frame) {
-    frame.render_widget(
-        Paragraph::new("Hello World!").block(Block::bordered().title("Greeting")),
-        frame.size(),
-    );
+fn delete_file(file_name: &str) {
+    std::fs::remove_file(file_name).unwrap();
 }
-
+fn read_file(file_name: &str) -> String {
+    let mut file = std::fs::File::open(file_name).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    return contents;
+}
+fn change_dir(dir_name: &str) {
+    std::env::set_current_dir(dir_name).unwrap();
+}
+fn make_dir(dir_name: &str) {
+    std::fs::create_dir(dir_name).unwrap();
+}
+fn delete_dir(dir_name: &str) {
+    std::fs::remove_dir_all(dir_name).unwrap();
+}
+fn rename_file(old_name: &str, new_name: &str) {
+    std::fs::rename(old_name, new_name).unwrap();
+}
+fn copy_file(old_name: &str, new_name: &str) {
+    std::fs::copy(old_name, new_name).unwrap();
+}
+fn get_absolute_path(file_name: &str) -> String {
+    let path = std::path::Path::new(file_name);
+    return path.canonicalize().unwrap().display().to_string();
+}
+fn file_exists(file_name: &str) -> bool {
+    return std::path::Path::new(file_name).exists();
+}
+fn main()  {
+   
+}
