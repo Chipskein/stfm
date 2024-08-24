@@ -1,44 +1,93 @@
-//mod files;
-//use std::path::Path;
-/*
-    let current_dir=std::env::current_dir().unwrap();
-    println!("{}",test.display());
-    let path=test.to_str().unwrap();
-    println!("{}",path);
-    let t=files::file_exists(&path);
-    println!("{}",t);
-    let path_file=Path::new("test.txt").to_str().unwrap();
-    let result=files::read_file(path_file);
-    println!("{}",result);
-*/
-use clap::Parser;
-use std::io::BufReader;
-use std::io::BufRead;
-use std::fs::File;
+mod files;
+use std::path::PathBuf;
+use clap::{Parser, Subcommand};
 
-/// Search for a pattern in a file and display the lines that contain it.
+/// Implement simple CLI to manage simple file operations
 #[derive(Parser,Debug)]
-struct Cli{
-    /// The pattern to look for
-    pattern:String,
-    /// The path to the file to read
-    path:std::path::PathBuf,
+#[clap(name = "stfm")]
+struct App{
+    #[clap(subcommand)]
+    command: Command,
+}
+#[derive(Debug, Subcommand)]
+enum Command {
+    /// Read a file usage :`stfm read <path>`
+    Read {
+        /// The path to read from
+        path: PathBuf,
+    },
+    /// List all files in a directory usage: `stfm list <path>`
+    List {
+        /// The path to list all files
+        path: PathBuf,
+    },
+    /// Create a file usage: `stfm create <path>`
+    Create {
+        /// The path to create a file
+        path: PathBuf,
+    },
+    /// Rename a file usage: `stfm rename <old_path> <new_path>`
+    Rename {
+        /// The path to rename
+        old_path: PathBuf,
+        /// The path to new name
+        new_path: PathBuf,
+    },
+    /// Move a file usage: `stfm move <old_path> <new_path>`
+    Move {
+        /// The path to move
+        old_path: PathBuf,
+        /// The path to new location
+        new_path: PathBuf,
+    },
+    /// Copy a file usage: `stfm copy <old_path> <new_path>`
+    Copy {
+        /// The path to copy
+        old_path: PathBuf,
+        /// The path to new location
+        new_path: PathBuf,
+    },
+    /// Delete a file usage: `stfm delete <path>`
+    Delete {
+        /// The path to delete
+        path: PathBuf,
+        /// Delete recursively if the path is a directory
+        #[clap(short, long, default_value = "false")]
+        recursive: bool,
+    },
 }
 
-fn main()  {
-    let args = Cli::parse();
-    println!("pattern: {:?}, path: {:?}", args.pattern, args.path);
-    let result = File::open(&args.path);
-    let file= match result {
-        Ok(file) => { file },
-        Err(error) => { panic!("Can't deal with {}, just exit here", error);  }
-    };
-    let reader = BufReader::new(file);
-    reader.lines().for_each(|line| {
-        let line = line.expect("could not read line");
-        if line.contains(&args.pattern) {
-            println!("{}", line);
-        }
-    });
 
+fn main (){
+    let args = App::parse();
+    match args.command {
+        Command::Read { path } => {
+            let result = files::read_file(&path.to_str().unwrap());
+            println!("{}", result);
+        }
+        Command::List { path } => {
+            let result = files::list_files(&path.to_str().unwrap());
+            println!("{:?}", result);
+        }
+        Command::Create { path } => {
+            files::create_file(&path.to_str().unwrap());
+        }
+        Command::Rename { old_path, new_path } => {
+            files::rename_file(&old_path.to_str().unwrap(), &new_path.to_str().unwrap());
+        }
+        Command::Move { old_path, new_path } => {
+            files::rename_file(&old_path.to_str().unwrap(), &new_path.to_str().unwrap());
+        }
+        Command::Copy { old_path, new_path } => {
+            files::copy_file(&old_path.to_str().unwrap(), &new_path.to_str().unwrap());
+        }
+        Command::Delete { path, recursive } => {
+            if recursive {
+                files::delete_dir(&path.to_str().unwrap());
+            } else {
+                files::delete_file(&path.to_str().unwrap());
+            }
+        }
+        
+    }
 }

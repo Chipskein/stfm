@@ -1,3 +1,4 @@
+#![allow(unused)]
 use std::io::Read;
 pub fn list_files(current_dir: &str) -> Vec<String> {
     let mut files = Vec::new();
