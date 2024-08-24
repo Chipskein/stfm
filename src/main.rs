@@ -11,4 +11,34 @@
     let result=files::read_file(path_file);
     println!("{}",result);
 */
-fn main()  {}
+use clap::Parser;
+use std::io::BufReader;
+use std::io::BufRead;
+use std::fs::File;
+
+/// Search for a pattern in a file and display the lines that contain it.
+#[derive(Parser,Debug)]
+struct Cli{
+    /// The pattern to look for
+    pattern:String,
+    /// The path to the file to read
+    path:std::path::PathBuf,
+}
+
+fn main()  {
+    let args = Cli::parse();
+    println!("pattern: {:?}, path: {:?}", args.pattern, args.path);
+    let result = File::open(&args.path);
+    let file= match result {
+        Ok(file) => { file },
+        Err(error) => { panic!("Can't deal with {}, just exit here", error);  }
+    };
+    let reader = BufReader::new(file);
+    reader.lines().for_each(|line| {
+        let line = line.expect("could not read line");
+        if line.contains(&args.pattern) {
+            println!("{}", line);
+        }
+    });
+
+}
