@@ -1,93 +1,134 @@
-mod files;
-use std::path::PathBuf;
-use clap::{Parser, Subcommand};
+use std::{error::Error, io};
 
-/// Implement simple CLI to manage simple file operations
-#[derive(Parser,Debug)]
-#[clap(name = "stfm")]
-struct App{
-    #[clap(subcommand)]
-    command: Command,
-}
-#[derive(Debug, Subcommand)]
-enum Command {
-    /// Read a file usage :`stfm read <path>`
-    Read {
-        /// The path to read from
-        path: PathBuf,
+use ratatui::{
+    backend::{Backend, CrosstermBackend},
+    crossterm::{
+        event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
+        execute,
+        terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     },
-    /// List all files in a directory usage: `stfm list <path>`
-    List {
-        /// The path to list all files
-        path: PathBuf,
-    },
-    /// Create a file usage: `stfm create <path>`
-    Create {
-        /// The path to create a file
-        path: PathBuf,
-    },
-    /// Rename a file usage: `stfm rename <old_path> <new_path>`
-    Rename {
-        /// The path to rename
-        old_path: PathBuf,
-        /// The path to new name
-        new_path: PathBuf,
-    },
-    /// Move a file usage: `stfm move <old_path> <new_path>`
-    Move {
-        /// The path to move
-        old_path: PathBuf,
-        /// The path to new location
-        new_path: PathBuf,
-    },
-    /// Copy a file usage: `stfm copy <old_path> <new_path>`
-    Copy {
-        /// The path to copy
-        old_path: PathBuf,
-        /// The path to new location
-        new_path: PathBuf,
-    },
-    /// Delete a file usage: `stfm delete <path>`
-    Delete {
-        /// The path to delete
-        path: PathBuf,
-        /// Delete recursively if the path is a directory
-        #[clap(short, long, default_value = "false")]
-        recursive: bool,
-    },
+    Terminal,
+};
+
+mod app;
+mod ui;
+use crate::{
+    app::{App, CurrentScreen, CurrentlyEditing},
+    ui::ui,
+};
+
+fn main() -> Result<(), Box<dyn Error>> {
+    // setup terminal
+    enable_raw_mode()?;
+    let mut stderr = io::stderr(); // This is a special case. Normally using stdout is fine
+    execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend = CrosstermBackend::new(stderr);
+    let mut terminal = Terminal::new(backend)?;
+
+    // create app and run it
+    let mut app = App::new();
+    let res = run_app(&mut terminal, &mut app);
+
+    // restore terminal
+    disable_raw_mode()?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
+    terminal.show_cursor()?;
+
+    if let Ok(do_print) = res {
+        if do_print {
+            app.print_json()?;
+        }
+    } else if let Err(err) = res {
+        println!("{err:?}");
+    }
+
+    Ok(())
 }
 
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
+    loop {
+        terminal.draw(|f| ui(f, app))?;
 
-fn main (){
-    let args = App::parse();
-    match args.command {
-        Command::Read { path } => {
-            let result = files::read_file(&path.to_str().unwrap());
-            println!("{}", result);
-        }
-        Command::List { path } => {
-            let result = files::list_files(&path.to_str().unwrap());
-            println!("{:?}", result);
-        }
-        Command::Create { path } => {
-            files::create_file(&path.to_str().unwrap());
-        }
-        Command::Rename { old_path, new_path } => {
-            files::rename_file(&old_path.to_str().unwrap(), &new_path.to_str().unwrap());
-        }
-        Command::Move { old_path, new_path } => {
-            files::rename_file(&old_path.to_str().unwrap(), &new_path.to_str().unwrap());
-        }
-        Command::Copy { old_path, new_path } => {
-            files::copy_file(&old_path.to_str().unwrap(), &new_path.to_str().unwrap());
-        }
-        Command::Delete { path, recursive } => {
-            if recursive {
-                files::delete_dir(&path.to_str().unwrap());
-            } else {
-                files::delete_file(&path.to_str().unwrap());
+        if let Event::Key(key) = event::read()? {
+            if key.kind == event::KeyEventKind::Release {
+                // Skip events that are not KeyEventKind::Press
+                continue;
+            }
+            match app.current_screen {
+                CurrentScreen::Main => match key.code {
+                    KeyCode::Char('e') => {
+                        app.current_screen = CurrentScreen::Editing;
+                        app.currently_editing = Some(CurrentlyEditing::Key);
+                    }
+                    KeyCode::Char('q') => {
+                        app.current_screen = CurrentScreen::Exiting;
+                    }
+                    _ => {}
+                },
+                CurrentScreen::Exiting => match key.code {
+                    KeyCode::Char('y') => {
+                        return Ok(true);
+                    }
+                    KeyCode::Char('n') | KeyCode::Char('q') => {
+                        return Ok(false);
+                    }
+                    _ => {}
+                },
+                CurrentScreen::Editing if key.kind == KeyEventKind::Press => {
+                    match key.code {
+                        KeyCode::Enter => {
+                            if let Some(editing) = &app.currently_editing {
+                                match editing {
+                                    CurrentlyEditing::Key => {
+                                        app.currently_editing = Some(CurrentlyEditing::Value);
+                                    }
+                                    CurrentlyEditing::Value => {
+                                        app.save_key_value();
+                                        app.current_screen = CurrentScreen::Main;
+                                    }
+                                }
+                            }
+                        }
+                        KeyCode::Backspace => {
+                            if let Some(editing) = &app.currently_editing {
+                                match editing {
+                                    CurrentlyEditing::Key => {
+                                        app.key_input.pop();
+                                    }
+                                    CurrentlyEditing::Value => {
+                                        app.value_input.pop();
+                                    }
+                                }
+                            }
+                        }
+                        KeyCode::Esc => {
+                            app.current_screen = CurrentScreen::Main;
+                            app.currently_editing = None;
+                        }
+                        KeyCode::Tab => {
+                            app.toggle_editing();
+                        }
+                        KeyCode::Char(value) => {
+                            if let Some(editing) = &app.currently_editing {
+                                match editing {
+                                    CurrentlyEditing::Key => {
+                                        app.key_input.push(value);
+                                    }
+                                    CurrentlyEditing::Value => {
+                                        app.value_input.push(value);
+                                    }
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                _ => {}
             }
         }
-        
     }
 }
