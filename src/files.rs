@@ -7,7 +7,6 @@ pub struct StfmFile {
     pub full_path: String,
     pub name: String,
     pub extension: String,
-    pub created_at : String,
     pub size: u64,
     pub is_dir: bool,
 }
@@ -34,7 +33,6 @@ pub fn list_files(current_dir: &PathBuf) -> Vec<StfmFile> {
                             }
                         },
                     },
-                    created_at: format!("{:?}", entry.metadata().unwrap().created().unwrap()),
                     size: entry.metadata().unwrap().len(),
                     is_dir: entry.metadata().unwrap().is_dir(),
                 };
