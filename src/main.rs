@@ -52,59 +52,16 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             break Ok(true);
                         }
                         KeyCode::Down => {
-                            match app.index_selected {
-                                Some(index) => {
-                                    if index==app.files.len()-1{
-                                        app.list_state.select_first();
-                                        app.index_selected = app.list_state.selected();
-                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
-
-                                    } else {
-                                        app.list_state.select_next();
-                                        app.index_selected = app.list_state.selected();
-                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
-                                    }
-                                    
-                                }
-                                _ => {
-                                    app.list_state.select_first();
-                                    app.index_selected = app.list_state.selected();
-                                    app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
-                                }
-                            }
+                            app.down();
                         }
                         KeyCode::Up => {
-                            match app.index_selected {
-                                Some(index)=>{
-                                    if index==0{
-                                        app.list_state.select_last();
-                                        app.index_selected = app.list_state.selected();
-                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
-                                    } else {
-                                        app.list_state.select_previous();
-                                        app.index_selected = app.list_state.selected();
-                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
-                                    }
-                                }
-                                _ =>{
-                                    app.list_state.select_last();
-                                    app.index_selected = app.list_state.selected();
-                                    app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
-                                }
-                            }
+                            app.up();
                         }
                         KeyCode::Enter | KeyCode::Right => {
-                            if app.selected_file.is_some(){
-                                let file=app.selected_file.as_ref().unwrap();
-                                if file.is_dir{
-                                    app.cd(file.name.clone());
-                                } else {
-                                    todo!();
-                                }
-                            }
+                            app.handle_selected_file();
                         }
                         KeyCode::Backspace | KeyCode::Left => {
-                            todo!()
+                            app.previus_dir();
                         }
 
                         _ => {}
