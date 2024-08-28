@@ -4,7 +4,9 @@ use std::env::current_dir;
 use::std::path::PathBuf;
 use ratatui::{widgets::{ListState}};
 use crate::files::*;
+#[derive(Debug)]
 pub enum CurrentScreen {Main}
+#[derive(Debug)]
 pub struct App {
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
     pub files: Vec<StfmFile>, // A list of files in the current directory
@@ -27,6 +29,8 @@ impl App{
             list_state: ListState::default(),
         };
         a.list_state.select_first();
+        a.index_selected = a.list_state.selected();
+        a.selected_file = a.files.get(a.index_selected.unwrap_or(0)).cloned();
         a
     }
     
@@ -39,7 +43,7 @@ impl App{
     pub fn down(&mut self) {
         match self.index_selected {
             Some(index) => {
-                if index==self.files.len()-1{
+                if index==self.files.len()-1 || index==usize::MAX {
                     self.list_state.select_first();
                     self.index_selected = self.list_state.selected();
                     self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
@@ -51,18 +55,14 @@ impl App{
                 }
                 
             }
-            _ => {
-                self.list_state.select_first();
-                self.index_selected = self.list_state.selected();
-                self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-            }
+            _ => {}
         }
     }
 
     pub fn up(&mut self) {
         match self.index_selected {
             Some(index)=>{
-                if index==0{
+                if index==0 {
                     self.list_state.select_last();
                     self.index_selected = self.list_state.selected();
                     self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
@@ -72,11 +72,7 @@ impl App{
                     self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
                 }
             }
-            _ =>{
-                self.list_state.select_last();
-                self.index_selected = self.list_state.selected();
-                self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-            }
+            _ =>{}
         }
     }
     pub fn handle_selected_file(&mut self) {
