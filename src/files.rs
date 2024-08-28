@@ -67,7 +67,10 @@ pub fn read_file(file_name: &str) -> String {
 
 /// Change the current directory
 pub fn change_dir(dir_name: &PathBuf) {
-    std::env::set_current_dir(dir_name).unwrap();
+    match std::env::set_current_dir(dir_name) {
+        Ok(_) => {},
+        Err(_) => {},
+    }
 }
 
 /// Make a directory
