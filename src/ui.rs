@@ -1,3 +1,4 @@
+#![allow(unused)]
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -24,22 +25,20 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .style(Style::default());
 
     let title = Paragraph::new(Text::styled(
-        "Create New Json",
+        app.current_dir.to_string_lossy(),
         Style::default().fg(Color::Green),
     ))
     .block(title_block);
 
+
     frame.render_widget(title, chunks[0]);
     let mut list_items = Vec::<ListItem>::new();
-
-    /*
-    for key in app.pairs.keys() {
-        list_items.push(ListItem::new(Line::from(Span::styled(
-            format!("{: <25} : {}", key, app.pairs.get(key).unwrap()),
-            Style::default().fg(Color::Yellow),
-        ))));
-    }
-    */
+    app.files.iter().for_each(|file| {
+        list_items.push(ListItem::new(Span::styled(
+            format!("[{}] {}",file.extension.to_uppercase(),file.name,),
+            Style::default(),
+        )));
+    });
     let list = List::new(list_items);
 
     frame.render_widget(list, chunks[1]);
@@ -47,8 +46,6 @@ pub fn ui(frame: &mut Frame, app: &App) {
         // The first half of the text
         match app.current_screen {
             CurrentScreen::Main => Span::styled("Normal Mode", Style::default().fg(Color::Green)),
-            //CurrentScreen::Editing => {Span::styled("Editing Mode", Style::default().fg(Color::Yellow))}
-            //CurrentScreen::Exiting => Span::styled("Exiting", Style::default().fg(Color::LightRed)),
         }.to_owned(),
         // A white divider bar to separate the two sections
         Span::styled(" | ", Style::default().fg(Color::White)),

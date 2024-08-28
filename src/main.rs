@@ -1,3 +1,4 @@
+#![allow(unused)]
 use std::{error::Error, io};
 use ratatui::{
     backend::{Backend, CrosstermBackend},
@@ -12,7 +13,7 @@ mod files;
 mod app;
 mod ui;
 use crate::{
-    app::App,
+    app::{App,CurrentScreen},
     ui::ui,
 };
 
@@ -45,10 +46,17 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
 
         if let Event::Key(key) = event::read()? {
             if key.kind == event::KeyEventKind::Release {
-                // Skip events that are not KeyEventKind::Press
                 continue;
             }
             match app.current_screen {
+                CurrentScreen::Main => {
+                    match key.code {
+                        KeyCode::Char('q') => {
+                            break Ok(true);
+                        }
+                        _ => {}
+                    }
+                }
                 _ => {}
             }
         }

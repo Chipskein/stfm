@@ -3,24 +3,51 @@
 use std::io::Read;
 use std::path::PathBuf;
 
+pub struct StfmFile {
+    pub full_path: String,
+    pub name: String,
+    pub extension: String,
+    pub created_at : String,
+    pub size: u64,
+    pub is_dir: bool,
+}
+
+
 /// List all files in the current directory
-pub fn list_files(current_dir: &PathBuf) -> Vec<PathBuf> {
+pub fn list_files(current_dir: &PathBuf) -> Vec<StfmFile> {
     let mut files = Vec::new();
     for entry in std::fs::read_dir(current_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
-        files.push(path);
+        let file=StfmFile {
+            full_path: path.to_string_lossy().to_string(),
+            name: path.file_name().unwrap().to_string_lossy().to_string(),
+            extension: match path.extension() {
+                Some(ext) => ext.to_string_lossy().to_string(),
+                None => {
+                    if entry.metadata().unwrap().is_dir(){
+                        "DIR".to_string()
+                    } else{
+                        "FILE".to_string()
+                    }
+                },
+            },
+            created_at: format!("{:?}", entry.metadata().unwrap().created().unwrap()),
+            size: entry.metadata().unwrap().len(),
+            is_dir: entry.metadata().unwrap().is_dir(),
+        };
+        files.push(file);
     }
     return files;
 }
 
 /// Create a file
-pub fn create_file(file_name: &str) {
-    std::fs::File::create(file_name).unwrap();
+pub fn create_file(file_path: &PathBuf) {
+    std::fs::File::create(file_path).unwrap();
 }
 
 /// Delete a file
-pub fn delete_file(file_name: &str) {
+pub fn delete_file(file_name: &PathBuf) {
     std::fs::remove_file(file_name).unwrap();
 }
 
@@ -33,7 +60,7 @@ pub fn read_file(file_name: &str) -> String {
 }
 
 /// Change the current directory
-pub fn change_dir(dir_name: &str) {
+pub fn change_dir(dir_name: &PathBuf) {
     std::env::set_current_dir(dir_name).unwrap();
 }
 
@@ -64,6 +91,6 @@ pub fn get_absolute_path(file_name: &str) -> String {
 }
 
 /// Check if a file exists
-pub fn file_exists(file_name: &str) -> bool {
+pub fn file_exists(file_name: &PathBuf) -> bool {
     return std::path::Path::new(file_name).exists();
 }
