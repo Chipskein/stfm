@@ -11,7 +11,7 @@ use ratatui::{
 use crate::{app::{App, CurrentScreen}, files::StfmFile};
 
 
-pub fn ui(frame: &mut Frame, app: &App,list_state: &mut ListState) {
+pub fn ui(frame: &mut Frame, app: &mut App) {
     // Create the layout sections.
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -48,7 +48,7 @@ pub fn ui(frame: &mut Frame, app: &App,list_state: &mut ListState) {
         .repeat_highlight_symbol(true)
         .direction(ListDirection::TopToBottom);
     
-    frame.render_stateful_widget(list, chunks[1], list_state);
+    frame.render_stateful_widget(list, chunks[1], &mut app.list_state);
 
 
     let file_info_text = format!("");

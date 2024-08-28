@@ -2,6 +2,7 @@
 
 use std::env::current_dir;
 use::std::path::PathBuf;
+use ratatui::{widgets::{ListState}};
 use crate::files::*;
 pub enum CurrentScreen {Main}
 pub struct App {
@@ -10,27 +11,40 @@ pub struct App {
     pub current_dir: PathBuf, // the current directory the user is in
     pub index_selected: Option<usize>, // the index of the file the user has selected
     pub selected_file: Option<StfmFile>, // the current file the user is selected
+    pub list_state: ListState,
 }
 
 impl App{
     pub fn new() -> App {
         let current_dir = current_dir().unwrap();
         let files = list_files(&current_dir);
-        App {
+        let mut a=App {
             current_screen: CurrentScreen::Main,
             current_dir,
             files,
             selected_file: None,
             index_selected: None,
-        }
+            list_state: ListState::default(),
+        };
+        a.list_state.select_first();
+        a
     }
     
-    pub fn cd(&mut self, dir_name: &str) {
+    pub fn cd(&mut self, dir_name: String) {
         self.current_dir.push(dir_name);
         change_dir(&self.current_dir);
         self.files = list_files(&self.current_dir);
     }
 
+    pub fn down() {
+        todo!()
+    }
+    pub fn up() {
+        todo!()
+    }
+    pub fn handle_selected_file() {
+        todo!()
+    }
     pub fn go_back(&mut self) {
         self.current_dir.pop();
         self.files = list_files(&self.current_dir);
