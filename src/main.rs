@@ -7,6 +7,7 @@ use ratatui::{
         execute,
         terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     },
+    widgets::{List, ListState},
     Terminal,
 };
 mod files;
@@ -25,7 +26,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
     // create app and run it
     let mut app = App::new();
-    let res = run_app(&mut terminal, &mut app);
+    let mut list_state = ListState::default();
+    list_state.select_first();
+    let res = run_app(&mut terminal, &mut app, &mut list_state);
     // restore terminal
     disable_raw_mode()?;
     execute!(
@@ -40,9 +43,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App, list_state:&mut ListState) -> io::Result<bool> {
     loop {
-        terminal.draw(|f| ui(f, app))?;
+        terminal.draw(|f| ui(f, app,list_state))?;
 
         if let Event::Key(key) = event::read()? {
             if key.kind == event::KeyEventKind::Release {
@@ -53,6 +56,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     match key.code {
                         KeyCode::Char('q') => {
                             break Ok(true);
+                        }
+                        KeyCode::Char('j') => {
+                            list_state.select_next()
+                        }
+                        KeyCode::Char('k') => {
+                            list_state.select_previous()
                         }
                         _ => {}
                     }

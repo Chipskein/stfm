@@ -4,15 +4,15 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Clear, List, ListItem,ListDirection, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, List, ListItem,ListState,ListDirection, Paragraph, Wrap},
     Frame,
 };
 
-use crate::app::{App, CurrentScreen};
+use crate::{app::{App, CurrentScreen}, files::StfmFile};
 
-pub fn ui(frame: &mut Frame, app: &App) {
+
+pub fn ui(frame: &mut Frame, app: &App,list_state: &mut ListState) {
     // Create the layout sections.
-
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -32,6 +32,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
     .block(title_block);
     frame.render_widget(title, chunks[0]);
 
+    
     let mut list_items = Vec::<ListItem>::new();
     app.files.iter().for_each(|file| {
         let widget_item = ListItem::new(Span::styled(
@@ -46,9 +47,10 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .highlight_symbol(">>")
         .repeat_highlight_symbol(true)
         .direction(ListDirection::TopToBottom);
-    frame.render_widget(list, chunks[1]);
-
     
+    frame.render_stateful_widget(list, chunks[1], list_state);
+
+
     let file_info_text = format!("");
     let footer =
         Paragraph::new(Text::from(file_info_text)).block(Block::default().borders(Borders::ALL));
