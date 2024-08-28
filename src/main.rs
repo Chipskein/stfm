@@ -48,7 +48,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             match app.current_screen {
                 CurrentScreen::Main => {
                     match key.code {
-                        KeyCode::Char('q') => {
+                        KeyCode::Char('q')|KeyCode::Esc => {
                             break Ok(true);
                         }
                         KeyCode::Down => {
@@ -64,6 +64,20 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             app.previus_dir();
                         }
 
+                        _ => {}
+                    }
+                }
+                CurrentScreen::Preview => {
+                    match key.code {
+                        KeyCode::Char('q')|KeyCode::Esc | KeyCode::Left=> {
+                            app.current_screen=CurrentScreen::Main;
+                        }
+                        KeyCode::Down => {
+                            app.scroll_down();
+                        }
+                        KeyCode::Up => {
+                            app.scroll_up();
+                        }
                         _ => {}
                     }
                 }

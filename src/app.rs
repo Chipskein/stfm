@@ -2,18 +2,26 @@
 
 use std::env::current_dir;
 use::std::path::PathBuf;
-use ratatui::{widgets::{ListState}};
+use ratatui::{widgets::{ListState,ScrollbarState}};
 use crate::files::*;
 #[derive(Debug)]
-pub enum CurrentScreen {Main}
+pub enum CurrentScreen {
+    Main,
+    Preview,
+}
 #[derive(Debug)]
 pub struct App {
+    /*MAIN*/
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
     pub files: Vec<StfmFile>, // A list of files in the current directory
     pub current_dir: PathBuf, // the current directory the user is in
     pub index_selected: Option<usize>, // the index of the file the user has selected
     pub selected_file: Option<StfmFile>, // the current file the user is selected
-    pub list_state: ListState,
+    pub list_state: ListState, // the state of the list widget
+
+    /*PREVIEW */
+    pub preview_string:String, // the string to be displayed in the preview block
+    pub preview_scroll_state: ScrollbarState, // the state of the vertical scrollbar at preview
 }
 
 impl App{
@@ -27,6 +35,8 @@ impl App{
             selected_file: None,
             index_selected: None,
             list_state: ListState::default(),
+            preview_string: String::new(),
+            preview_scroll_state: ScrollbarState::default(),
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -75,23 +85,34 @@ impl App{
             _ =>{}
         }
     }
+    
     pub fn handle_selected_file(&mut self) {
         if self.selected_file.is_some(){
             let file=self.selected_file.as_ref().unwrap();
             if file.is_dir {
                 self.cd(file.name.clone());
             } else {
-                //Handle File
-                todo!();
+                self.current_screen=CurrentScreen::Preview;
+                self.preview_string = read_file(&file.full_path);
             }
         }
     }
+    
     pub fn previus_dir(&mut self) {
         self.current_dir.pop();
         self.files = list_files(&self.current_dir);
         self.index_selected=Some(0);
         self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
         self.list_state.select_first();
+        self.current_screen=CurrentScreen::Main;
+    }
+
+    pub fn scroll_up(&mut self) {
+        todo!();
+    }
+    
+    pub fn scroll_down(&mut self) {
+        todo!();
     }
 
     pub fn new_file(&mut self, file_name: &str) {

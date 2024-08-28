@@ -3,13 +3,16 @@ use ratatui::{
     crossterm::ExecutableCommand,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
+    symbols::block,
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Clear, List, ListItem,ListState,ListDirection, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, List, ListDirection, ListItem, ListState, Paragraph, Wrap},
     Frame,
 };
 
-use crate::{app::{App, CurrentScreen}, files::StfmFile};
-
+use crate::{
+    app::{App, CurrentScreen},
+    files::StfmFile,
+};
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     // Create the layout sections.
@@ -32,26 +35,62 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     .block(title_block);
     frame.render_widget(title, chunks[0]);
 
-    
-    let mut list_items = Vec::<ListItem>::new();
-    app.files.iter().for_each(|file| {
-        let widget_item = ListItem::new(Span::styled(
-            format!("[{}] {}", file.extension.to_uppercase(), file.name,),
-            Style::default(),
-        ));
-        list_items.push(widget_item);
-    });
+    match app.current_screen {
+        CurrentScreen::Main => {
+            let list_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let mut list_items = Vec::<ListItem>::new();
+            app.files.iter().for_each(|file| {
+                let widget_item = ListItem::new(Span::styled(
+                    format!("[{}] {}", file.extension.to_uppercase(), file.name,),
+                    Style::default(),
+                ));
+                list_items.push(widget_item);
+            });
+            let list = List::new(list_items)
+                .highlight_style(Style::default().bg(Color::White).fg(Color::Black))
+                .highlight_symbol(">>")
+                .repeat_highlight_symbol(true)
+                .direction(ListDirection::TopToBottom)
+                .block(list_block);
+            frame.render_stateful_widget(list, chunks[1], &mut app.list_state);
+            
+        }
+        CurrentScreen::Preview => {
+            let chunk_main = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(chunks[1]);
+            let list_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let mut list_items = Vec::<ListItem>::new();
+            app.files.iter().for_each(|file| {
+                let widget_item = ListItem::new(Span::styled(
+                    format!("[{}] {}", file.extension.to_uppercase(), file.name,),
+                    Style::default(),
+                ));
+                list_items.push(widget_item);
+            });
+            let list = List::new(list_items)
+                .highlight_style(Style::default().bg(Color::White).fg(Color::Black))
+                .highlight_symbol(">>")
+                .repeat_highlight_symbol(true)
+                .direction(ListDirection::TopToBottom)
+                .block(list_block);
+            frame.render_stateful_widget(list, chunk_main[0], &mut app.list_state);
 
-    let list = List::new(list_items)
-        .highlight_style(Style::default().bg(Color::White).fg(Color::Black))
-        .highlight_symbol(">>")
-        .repeat_highlight_symbol(true)
-        .direction(ListDirection::TopToBottom);
-    
-    frame.render_stateful_widget(list, chunks[1], &mut app.list_state);
+            /*Preview Block */
+            let preview_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let text = Paragraph::new(Text::from(app.preview_string.clone())).block(preview_block);
+            frame.render_widget(text, chunk_main[1]);
+        }
+    }
 
-
-    let file_info_text = format!("");
+    let file_info_text = format!(" ");
     let footer =
         Paragraph::new(Text::from(file_info_text)).block(Block::default().borders(Borders::ALL));
     frame.render_widget(footer, chunks[2]);
