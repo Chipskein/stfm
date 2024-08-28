@@ -12,7 +12,7 @@ pub struct App {
     pub selected_file: Option<StfmFile>, // the current file the user is selected
 }
 
-impl App {
+impl App{
     pub fn new() -> App {
         let current_dir = current_dir().unwrap();
         let files = list_files(&current_dir);

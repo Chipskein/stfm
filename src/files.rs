@@ -2,7 +2,7 @@
 
 use std::io::Read;
 use std::path::PathBuf;
-
+#[derive(Debug, Clone)]
 pub struct StfmFile {
     pub full_path: String,
     pub name: String,

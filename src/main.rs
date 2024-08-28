@@ -1,14 +1,11 @@
 #![allow(unused)]
 use std::{error::Error, io};
 use ratatui::{
-    backend::{Backend, CrosstermBackend},
-    crossterm::{
+    backend::{Backend, CrosstermBackend}, crossterm::{
         event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
         execute,
         terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-    },
-    widgets::{List, ListState},
-    Terminal,
+    }, layout::Margin, widgets::{List, ListState}, Terminal
 };
 mod files;
 mod app;
@@ -57,11 +54,47 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App, list_state:&mu
                         KeyCode::Char('q') => {
                             break Ok(true);
                         }
-                        KeyCode::Char('j') => {
-                            list_state.select_next()
+                        KeyCode::Down => {
+                            match app.index_selected {
+                                Some(index) => {
+                                    if index==app.files.len()-1{
+                                        list_state.select_first();
+                                        app.index_selected = list_state.selected();
+                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
+
+                                    } else {
+                                        list_state.select_next();
+                                        app.index_selected = list_state.selected();
+                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
+                                    }
+                                    
+                                }
+                                _ => {
+                                    list_state.select_first();
+                                    app.index_selected = list_state.selected();
+                                    app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
+                                }
+                            }
                         }
-                        KeyCode::Char('k') => {
-                            list_state.select_previous()
+                        KeyCode::Up => {
+                            match app.index_selected {
+                                Some(index)=>{
+                                    if index==0{
+                                        list_state.select_last();
+                                        app.index_selected = list_state.selected();
+                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
+                                    } else {
+                                        list_state.select_previous();
+                                        app.index_selected = list_state.selected();
+                                        app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
+                                    }
+                                }
+                                _ =>{
+                                    list_state.select_last();
+                                    app.index_selected = list_state.selected();
+                                    app.selected_file = app.files.get(app.index_selected.unwrap_or(0)).cloned();
+                                }
+                            }
                         }
                         _ => {}
                     }
