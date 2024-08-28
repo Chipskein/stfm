@@ -16,29 +16,35 @@ pub struct StfmFile {
 /// List all files in the current directory
 pub fn list_files(current_dir: &PathBuf) -> Vec<StfmFile> {
     let mut files = Vec::new();
-    for entry in std::fs::read_dir(current_dir).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        let file=StfmFile {
-            full_path: path.to_string_lossy().to_string(),
-            name: path.file_name().unwrap().to_string_lossy().to_string(),
-            extension: match path.extension() {
-                Some(ext) => ext.to_string_lossy().to_string(),
-                None => {
-                    if entry.metadata().unwrap().is_dir(){
-                        "DIR".to_string()
-                    } else{
-                        "FILE".to_string()
-                    }
-                },
-            },
-            created_at: format!("{:?}", entry.metadata().unwrap().created().unwrap()),
-            size: entry.metadata().unwrap().len(),
-            is_dir: entry.metadata().unwrap().is_dir(),
-        };
-        files.push(file);
+    match std::fs::read_dir(current_dir) {
+        Ok(files_in_dir) => {
+            for entry in files_in_dir {
+                let entry = entry.unwrap();
+                let path = entry.path();
+                let file=StfmFile {
+                    full_path: path.to_string_lossy().to_string(),
+                    name: path.file_name().unwrap().to_string_lossy().to_string(),
+                    extension: match path.extension() {
+                        Some(ext) => ext.to_string_lossy().to_string(),
+                        None => {
+                            if entry.metadata().unwrap().is_dir(){
+                                "DIR".to_string()
+                            } else{
+                                "FILE".to_string()
+                            }
+                        },
+                    },
+                    created_at: format!("{:?}", entry.metadata().unwrap().created().unwrap()),
+                    size: entry.metadata().unwrap().len(),
+                    is_dir: entry.metadata().unwrap().is_dir(),
+                };
+                files.push(file);
+            }
+        },
+        _ => {},
     }
     return files;
+    
 }
 
 /// Create a file
@@ -93,4 +99,14 @@ pub fn get_absolute_path(file_name: &str) -> String {
 /// Check if a file exists
 pub fn file_exists(file_name: &PathBuf) -> bool {
     return std::path::Path::new(file_name).exists();
+}
+#[cfg(test)]
+mod tests{
+    use super::*;
+    #[test]
+    fn empty_directory(){
+        let empty_dir = PathBuf::from("test");
+        let files = list_files(&empty_dir);
+        assert_eq!(files.len(), 0);
+    }
 }
