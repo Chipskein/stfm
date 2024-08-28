@@ -8,6 +8,8 @@ pub struct App {
     pub current_screen: CurrentScreen, // the current screen the user is looking at, and will later determine what is rendered.
     pub files: Vec<StfmFile>, // A list of files in the current directory
     pub current_dir: PathBuf, // the current directory the user is in
+    pub index_selected: Option<usize>, // the index of the file the user has selected
+    pub selected_file: Option<StfmFile>, // the current file the user is selected
 }
 
 impl App {
@@ -18,6 +20,8 @@ impl App {
             current_screen: CurrentScreen::Main,
             current_dir,
             files,
+            selected_file: None,
+            index_selected: None,
         }
     }
     

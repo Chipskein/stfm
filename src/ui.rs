@@ -1,9 +1,10 @@
 #![allow(unused)]
 use ratatui::{
+    crossterm::ExecutableCommand,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, List, ListItem,ListDirection, Paragraph, Wrap},
     Frame,
 };
 
@@ -11,6 +12,7 @@ use crate::app::{App, CurrentScreen};
 
 pub fn ui(frame: &mut Frame, app: &App) {
     // Create the layout sections.
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -23,74 +25,34 @@ pub fn ui(frame: &mut Frame, app: &App) {
     let title_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default());
-
     let title = Paragraph::new(Text::styled(
         app.current_dir.to_string_lossy(),
         Style::default().fg(Color::Green),
     ))
     .block(title_block);
-
-
     frame.render_widget(title, chunks[0]);
+
     let mut list_items = Vec::<ListItem>::new();
     app.files.iter().for_each(|file| {
-        list_items.push(ListItem::new(Span::styled(
-            format!("[{}] {}",file.extension.to_uppercase(),file.name,),
+        let widget_item = ListItem::new(Span::styled(
+            format!("[{}] {}", file.extension.to_uppercase(), file.name,),
             Style::default(),
-        )));
+        ));
+        list_items.push(widget_item);
     });
-    let list = List::new(list_items);
 
+    let list = List::new(list_items)
+        .highlight_style(Style::default().bg(Color::White).fg(Color::Black))
+        .highlight_symbol(">>")
+        .repeat_highlight_symbol(true)
+        .direction(ListDirection::TopToBottom);
     frame.render_widget(list, chunks[1]);
-    let current_navigation_text = vec![
-        // The first half of the text
-        match app.current_screen {
-            CurrentScreen::Main => Span::styled("Normal Mode", Style::default().fg(Color::Green)),
-        }.to_owned(),
-        // A white divider bar to separate the two sections
-        Span::styled(" | ", Style::default().fg(Color::White)),
-        // The final section of the text, with hints on what the user is editing
-        /*
-        {
-            if let Some(editing) = &app.currently_editing {
-                match editing {
-                    //CurrentlyEditing::Key => {Span::styled("Editing Json Key", Style::default().fg(Color::Green))}
-                    //CurrentlyEditing::Value => {Span::styled("Editing Json Value", Style::default().fg(Color::LightGreen))}
-                }
-            } else {
-                Span::styled("Not Editing Anything", Style::default().fg(Color::DarkGray))
-            }
-        },
-        */
-        
-    ];
 
-    let mode_footer = Paragraph::new(Line::from(current_navigation_text))
-        .block(Block::default().borders(Borders::ALL));
-
-    let current_keys_hint = {
-        match app.current_screen {
-            CurrentScreen::Main => Span::styled(
-                "(q) to quit / (e) to make new pair",
-                Style::default().fg(Color::Red),
-            ),
-            /*
-            CurrentScreen::Editing => Span::styled("(ESC) to cancel/(Tab) to switch boxes/enter to complete",Style::default().fg(Color::Red),),
-            CurrentScreen::Exiting => Span::styled("(q) to quit / (e) to make new pair",Style::default().fg(Color::Red),),
-            */
-        }
-    };
-
-    let key_notes_footer =
-        Paragraph::new(Line::from(current_keys_hint)).block(Block::default().borders(Borders::ALL));
-
-    let footer_chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-        .split(chunks[2]);
-
-    frame.render_widget(mode_footer, footer_chunks[0]);
-    frame.render_widget(key_notes_footer, footer_chunks[1]);
+    
+    let file_info_text = format!("");
+    let footer =
+        Paragraph::new(Text::from(file_info_text)).block(Block::default().borders(Borders::ALL));
+    frame.render_widget(footer, chunks[2]);
 
     /*
     if let Some(editing) = &app.currently_editing {
