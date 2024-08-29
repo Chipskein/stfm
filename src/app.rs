@@ -55,8 +55,9 @@ impl App{
         self.current_dir.push(dir_name);
         change_dir(&self.current_dir);
         self.files = list_files(&self.current_dir);
-        self.index_selected = self.list_state.selected();
-        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+        self.list_state.select(Some(0));
+        self.index_selected=Some(0);
+        self.selected_file = self.files.get(0).cloned();
     }
 
     pub fn down(&mut self) {
@@ -83,8 +84,8 @@ impl App{
             Some(index)=>{
                 if index==0 {
                     self.list_state.select_last();
-                    self.index_selected = self.list_state.selected();
-                    self.selected_file = self.files.get(self.index_selected.unwrap_or(self.files.len()-1)).cloned();
+                    self.index_selected = Some(self.files.len()-1);
+                    self.selected_file = self.files.get(self.files.len()-1).cloned();
                 } 
                 else {
                     self.list_state.select_previous();
