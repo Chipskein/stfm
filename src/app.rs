@@ -55,6 +55,8 @@ impl App{
         self.current_dir.push(dir_name);
         change_dir(&self.current_dir);
         self.files = list_files(&self.current_dir);
+        self.index_selected = self.list_state.selected();
+        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
     }
 
     pub fn down(&mut self) {
@@ -82,11 +84,12 @@ impl App{
                 if index==0 {
                     self.list_state.select_last();
                     self.index_selected = self.list_state.selected();
-                    self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-                } else {
+                    self.selected_file = self.files.get(self.index_selected.unwrap_or(self.files.len()-1)).cloned();
+                } 
+                else {
                     self.list_state.select_previous();
                     self.index_selected = self.list_state.selected();
-                    self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+                    self.selected_file = self.files.get(self.index_selected.unwrap_or(self.files.len()-1)).cloned();
                 }
             }
             _ =>{}
@@ -143,8 +146,5 @@ impl App{
         self.current_screen=CurrentScreen::Main;
     }
 
-    pub fn search(&mut self, query: &str) {
-        todo!()
-    }
 
 }
