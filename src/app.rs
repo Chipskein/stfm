@@ -10,6 +10,7 @@ pub enum CurrentScreen {
     Preview,
     CreateNewFile,
     ConfirmDelete,
+    IsNewFileADir,
 }
 #[derive(Debug)]
 pub struct App {
@@ -27,6 +28,7 @@ pub struct App {
     pub vertical_scroll: usize, // the vertical scroll position of the preview block
     /*CreateNewFile */
     pub new_file: String, // the name of the new file to be created
+    pub new_file_is_dir: bool, // if the new file is a directory
 }
 
 impl App {
@@ -44,6 +46,7 @@ impl App {
             preview_scroll_state: ScrollbarState::default(),
             vertical_scroll: 0,
             new_file: String::new(),
+            new_file_is_dir: false,
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -131,13 +134,24 @@ impl App {
     }
 
     pub fn new_file(&mut self, file_name: &str) {
-        let full_new_path = PathBuf::from(&self.current_dir).join(file_name);
-        create_file(&full_new_path);
-        self.files = list_files(&self.current_dir);
-        self.index_selected = Some(0);
-        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-        self.current_screen = CurrentScreen::Main;
-        self.new_file.clear();
+        if !self.new_file_is_dir {
+            let full_new_path = PathBuf::from(&self.current_dir).join(file_name);
+            create_file(&full_new_path);
+            self.files = list_files(&self.current_dir);
+            self.index_selected = Some(0);
+            self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+            self.current_screen = CurrentScreen::Main;
+            self.new_file.clear();
+        } else {
+            let full_new_path = PathBuf::from(&self.current_dir).join(file_name);
+            make_dir(&full_new_path);
+            self.files = list_files(&self.current_dir);
+            self.index_selected = Some(0);
+            self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+            self.current_screen = CurrentScreen::Main;
+            self.new_file.clear();
+        }
+
     }
 
     pub fn rm(&mut self) {

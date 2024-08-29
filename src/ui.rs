@@ -95,6 +95,21 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         }
         _ => {}
     }
+    if let CurrentScreen::IsNewFileADir = app.current_screen {
+        frame.render_widget(Clear, frame.area());
+        let area = centered_rect(40, 20, frame.area());
+        let mut title_pop_up=format!("Create new Entry",);
+        let mut text=format!(" Do you want to create a directory [y/n]");
+        let popup_block = Block::default()
+            .title(title_pop_up)
+            .borders(Borders::ALL)
+            .style(Style::default());
+        let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
+        let desc_paragraph = Paragraph::new(desc_text)
+            .block(popup_block)
+            .wrap(Wrap { trim: false });
+        frame.render_widget(desc_paragraph, area);
+    }
 
     if let CurrentScreen::CreateNewFile = app.current_screen {
         frame.render_widget(Clear, frame.area());
@@ -104,11 +119,11 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
             .split(area);
         let popup_block = Block::default()
-            .title("Create a new file")
+            .title("Create a new entry")
             .borders(Borders::ALL)
             .style(Style::default());
         let desc_text = Text::styled(
-            " Write Down the name of the new file and press Enter to create it or Esc to cancel",
+            " Write Down the name of the new entry then press 'Enter' to create it or 'Esc' to cancel",
             Style::default().fg(Color::Yellow),
         );
         let desc_paragraph = Paragraph::new(desc_text)

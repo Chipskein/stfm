@@ -72,7 +72,7 @@ pub fn change_dir(dir_name: &PathBuf) {
 }
 
 /// Make a directory
-pub fn make_dir(dir_name: &str) {
+pub fn make_dir(dir_name: &PathBuf) {
     std::fs::create_dir(dir_name).unwrap();
 }
 

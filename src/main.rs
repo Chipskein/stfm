@@ -52,7 +52,8 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             break Ok(true);
                         }
                         KeyCode::Char('n') => {
-                            app.current_screen=CurrentScreen::CreateNewFile;
+                            app.current_screen=CurrentScreen::IsNewFileADir;
+                            //app.current_screen=CurrentScreen::CreateNewFile;
                         }
                         KeyCode::Char('d') => {
                             match  app.selected_file.clone() {
@@ -61,7 +62,6 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                 }
                                 None => {}
                             }
-
                         }
                         KeyCode::Down => {
                             app.down();
@@ -91,6 +91,22 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             app.scroll_up();
                         }
                         _ => {}
+                    }
+                }
+                CurrentScreen::IsNewFileADir => {
+                    match key.code {
+                        KeyCode::Char('y') => {
+                            app.new_file_is_dir=true;
+                            app.current_screen=CurrentScreen::CreateNewFile;
+                        }
+                        KeyCode::Char('n') => {
+                            app.new_file_is_dir=false;
+                            app.current_screen=CurrentScreen::CreateNewFile;
+                        }
+                        _ => {
+                            app.new_file_is_dir=false;
+                            app.current_screen=CurrentScreen::Main;
+                        }
                     }
                 }
                 CurrentScreen::CreateNewFile => {
