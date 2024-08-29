@@ -5,7 +5,10 @@ use ratatui::{
     style::{Color, Style},
     symbols::block,
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Clear, List, ListDirection, ListItem, ListState, Paragraph, Wrap},
+    widgets::{
+        Block, Borders, Clear, List, ListDirection, ListItem, ListState, Paragraph, Scrollbar,
+        ScrollbarOrientation, Wrap,
+    },
     Frame,
 };
 
@@ -55,7 +58,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .direction(ListDirection::TopToBottom)
                 .block(list_block);
             frame.render_stateful_widget(list, chunks[1], &mut app.list_state);
-            
         }
         CurrentScreen::Preview => {
             let chunk_main = Layout::default()
@@ -85,12 +87,20 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             let preview_block = Block::default()
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let text = Paragraph::new(Text::from(app.preview_string.clone())).block(preview_block);
+            let text = Paragraph::new(Text::from(app.preview_string.clone()))
+                .block(preview_block)
+                .scroll((app.vertical_scroll as u16, 0));
             frame.render_widget(text, chunk_main[1]);
+            frame.render_stateful_widget(
+                Scrollbar::new(ScrollbarOrientation::VerticalRight),
+                chunk_main[1],
+                &mut app.preview_scroll_state,
+            );
         }
+        _ => {}
     }
 
-    let file_info_text = format!(" ");
+    let file_info_text = format!("");
     let footer =
         Paragraph::new(Text::from(file_info_text)).block(Block::default().borders(Borders::ALL));
     frame.render_widget(footer, chunks[2]);
@@ -127,27 +137,55 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         // let value_text = Paragraph::new(app.value_input.clone()).block(value_block);
         // frame.render_widget(value_text, popup_chunks[1]);
     }
-
-    if let CurrentScreen::Exiting = app.current_screen {
+    */
+    if let CurrentScreen::CreateNewFile = app.current_screen {
         frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
+        let area = centered_rect(60, 25, frame.area());
+        let chunks_pop_up=Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .split(area);
         let popup_block = Block::default()
-            .title("Y/N")
+            .title("Create a new file")
             .borders(Borders::NONE)
             .style(Style::default().bg(Color::DarkGray));
-
-        let exit_text = Text::styled(
-            "Would you like to output the buffer as json? (y/n)",
+        let desc_text = Text::styled(
+            " Write Down the name of the new file and press Enter to create it or Esc to cancel",
             Style::default().fg(Color::Red),
         );
-        // the `trim: false` will stop the text from being cut off when over the edge of the block
-        let exit_paragraph = Paragraph::new(exit_text)
+        let desc_paragraph = Paragraph::new(desc_text)
             .block(popup_block)
             .wrap(Wrap { trim: false });
+        frame.render_widget(desc_paragraph, chunks_pop_up[0]);
 
-        let area = centered_rect(60, 25, frame.area());
-        frame.render_widget(exit_paragraph, area);
+        let input_block = Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default());
+        let input = Paragraph::new(Text::styled(
+            app.new_file.clone(),
+            Style::default().fg(Color::Green),
+        ))
+        .block(input_block);
+        frame.render_widget(input, chunks_pop_up[1]);
     }
-    */
+
+    if let CurrentScreen::ConfirmDelete = app.current_screen {
+        frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
+        let area = centered_rect(60, 25, frame.area());
+        let popup_block = Block::default()
+            .title(format!("Delete file {}", app.selected_file.as_ref().unwrap().full_path))
+            .borders(Borders::NONE)
+            .style(Style::default().bg(Color::DarkGray));
+        let desc_text = Text::styled(
+            format!(" Are you sure you want to delete this file? [y/n]"),
+            Style::default().fg(Color::Red),
+        );
+        let desc_paragraph = Paragraph::new(desc_text)
+            .block(popup_block)
+            .wrap(Wrap { trim: false });
+        frame.render_widget(desc_paragraph, area);
+
+    }
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`

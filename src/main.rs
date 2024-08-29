@@ -51,6 +51,18 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         KeyCode::Char('q')|KeyCode::Esc => {
                             break Ok(true);
                         }
+                        KeyCode::Char('n') => {
+                            app.current_screen=CurrentScreen::CreateNewFile;
+                        }
+                        KeyCode::Char('d') => {
+                            match  app.selected_file.clone() {
+                                Some(_) => {
+                                    app.current_screen=CurrentScreen::ConfirmDelete;
+                                }
+                                None => {}
+                            }
+
+                        }
                         KeyCode::Down => {
                             app.down();
                         }
@@ -79,6 +91,44 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             app.scroll_up();
                         }
                         _ => {}
+                    }
+                }
+                CurrentScreen::CreateNewFile => {
+                    match key.code {
+                        KeyCode::Esc => {
+                            app.current_screen=CurrentScreen::Main;
+                        }
+                        KeyCode::Enter => {
+                            if !app.new_file.trim().is_empty() {
+                                app.new_file(&app.new_file.clone());
+                            } 
+                        }
+                        KeyCode::Backspace => {
+                            app.new_file.pop();
+                        }
+
+                        KeyCode::Delete => {
+                            app.new_file.clear();
+                        }
+
+                        _ => {
+                            match key.code.to_string().chars().last() {
+                                Some(c) =>{
+                                    app.new_file.push(c);
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                }
+                CurrentScreen::ConfirmDelete => {
+                    match key.code {
+                        KeyCode::Char('y') => {
+                            app.rm();
+                        }
+                        _ => {
+                            app.current_screen=CurrentScreen::Main;
+                        }
                     }
                 }
             }

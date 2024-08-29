@@ -2,12 +2,14 @@
 
 use std::env::current_dir;
 use::std::path::PathBuf;
-use ratatui::{widgets::{ListState,ScrollbarState}};
+use ratatui::{widgets::{ListState,ScrollbarState,ScrollDirection}};
 use crate::files::*;
 #[derive(Debug)]
 pub enum CurrentScreen {
     Main,
     Preview,
+    CreateNewFile,
+    ConfirmDelete,
 }
 #[derive(Debug)]
 pub struct App {
@@ -22,6 +24,9 @@ pub struct App {
     /*PREVIEW */
     pub preview_string:String, // the string to be displayed in the preview block
     pub preview_scroll_state: ScrollbarState, // the state of the vertical scrollbar at preview
+    pub vertical_scroll: usize, // the vertical scroll position of the preview block
+    /*CreateNewFile */
+    pub new_file: String, // the name of the new file to be created
 }
 
 impl App{
@@ -37,6 +42,8 @@ impl App{
             list_state: ListState::default(),
             preview_string: String::new(),
             preview_scroll_state: ScrollbarState::default(),
+            vertical_scroll: 0,
+            new_file: String::new(),
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -94,6 +101,8 @@ impl App{
             } else {
                 self.current_screen=CurrentScreen::Preview;
                 self.preview_string = read_file(&file.full_path);
+                self.preview_scroll_state.content_length(self.preview_string.len());
+                self.vertical_scroll=0;
             }
         }
     }
@@ -108,19 +117,30 @@ impl App{
     }
 
     pub fn scroll_up(&mut self) {
-        todo!();
+        self.vertical_scroll = self.vertical_scroll.saturating_sub(1);
+        self.preview_scroll_state =self.preview_scroll_state.position(self.vertical_scroll);
     }
-    
     pub fn scroll_down(&mut self) {
-        todo!();
+        self.vertical_scroll = self.vertical_scroll.saturating_add(1);
+        self.preview_scroll_state =self.preview_scroll_state.position(self.vertical_scroll);
     }
 
     pub fn new_file(&mut self, file_name: &str) {
-        todo!();
+        let full_new_path=PathBuf::from(&self.current_dir).join(file_name);
+        create_file(&full_new_path);
+        self.files = list_files(&self.current_dir);
+        self.index_selected=Some(0);
+        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+        self.current_screen=CurrentScreen::Main;
     }
 
-    pub fn rm(&mut self, file_name: &str) {
-        todo!();
+    pub fn rm(&mut self) {
+        let file=self.selected_file.as_ref().unwrap();
+        delete_file(&PathBuf::from(file.full_path.clone()));
+        self.files = list_files(&self.current_dir);
+        self.index_selected=Some(0);
+        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+        self.current_screen=CurrentScreen::Main;
     }
 
     pub fn search(&mut self, query: &str) {
