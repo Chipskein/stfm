@@ -18,16 +18,13 @@ use crate::{
 };
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
-    // Create the layout sections.
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),
-            Constraint::Min(1),
-            Constraint::Length(3),
+            Constraint::Percentage(10),
+            Constraint::Percentage(90)
         ])
         .split(frame.area());
-
     let title_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default());
@@ -83,7 +80,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .block(list_block);
             frame.render_stateful_widget(list, chunk_main[0], &mut app.list_state);
 
-            /*Preview Block */
             let preview_block = Block::default()
                 .borders(Borders::ALL)
                 .style(Style::default());
@@ -100,91 +96,54 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         _ => {}
     }
 
-    let file_info_text = format!("");
-    let footer =
-        Paragraph::new(Text::from(file_info_text)).block(Block::default().borders(Borders::ALL));
-    frame.render_widget(footer, chunks[2]);
-
-    /*
-    if let Some(editing) = &app.currently_editing {
-        let popup_block = Block::default()
-            .title("Enter a new key-value pair")
-            .borders(Borders::NONE)
-            .style(Style::default().bg(Color::DarkGray));
-
-        let area = centered_rect(60, 25, frame.area());
-        frame.render_widget(popup_block, area);
-
-        let popup_chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .margin(1)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(area);
-
-        let mut key_block = Block::default().title("Key").borders(Borders::ALL);
-        let mut value_block = Block::default().title("Value").borders(Borders::ALL);
-
-        let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
-
-        //match editing {
-            // CurrentlyEditing::Key => key_block = key_block.style(active_style),
-            // CurrentlyEditing::Value => value_block = value_block.style(active_style),
-        //};
-
-        // let key_text = Paragraph::new(app.key_input.clone()).block(key_block);
-        // frame.render_widget(key_text, popup_chunks[0]);
-
-        // let value_text = Paragraph::new(app.value_input.clone()).block(value_block);
-        // frame.render_widget(value_text, popup_chunks[1]);
-    }
-    */
     if let CurrentScreen::CreateNewFile = app.current_screen {
-        frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
-        let area = centered_rect(60, 25, frame.area());
+        frame.render_widget(Clear, frame.area());
+        let area = centered_rect(45, 25, frame.area());
         let chunks_pop_up=Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
             .split(area);
         let popup_block = Block::default()
             .title("Create a new file")
-            .borders(Borders::NONE)
-            .style(Style::default().bg(Color::DarkGray));
+            .borders(Borders::ALL)
+            .style(Style::default());
         let desc_text = Text::styled(
             " Write Down the name of the new file and press Enter to create it or Esc to cancel",
-            Style::default().fg(Color::Red),
+            Style::default().fg(Color::Yellow),
         );
         let desc_paragraph = Paragraph::new(desc_text)
             .block(popup_block)
             .wrap(Wrap { trim: false });
         frame.render_widget(desc_paragraph, chunks_pop_up[0]);
-
         let input_block = Block::default()
             .borders(Borders::ALL)
-            .style(Style::default());
+            .style(Style::default().bg(Color::White).fg(Color::Black));
         let input = Paragraph::new(Text::styled(
             app.new_file.clone(),
-            Style::default().fg(Color::Green),
+            Style::default().fg(Color::Black).bg(Color::White),
         ))
         .block(input_block);
         frame.render_widget(input, chunks_pop_up[1]);
     }
 
     if let CurrentScreen::ConfirmDelete = app.current_screen {
-        frame.render_widget(Clear, frame.area()); //this clears the entire screen and anything already drawn
-        let area = centered_rect(60, 25, frame.area());
+        frame.render_widget(Clear, frame.area());
+        let area = centered_rect(40, 20, frame.area());
+        let mut title_pop_up=format!("Delete file {}", app.selected_file.as_ref().unwrap().full_path);
+        let mut text=format!(" Are you sure you want to delete this file? [y/n]");
+        if app.selected_file.as_ref().unwrap().is_dir{
+            title_pop_up=format!("Delete directory {}", app.selected_file.as_ref().unwrap().full_path);
+            text=format!(" Are you sure you want to delete this directory? All files inside will be deleted[y/n]");
+        }
         let popup_block = Block::default()
-            .title(format!("Delete file {}", app.selected_file.as_ref().unwrap().full_path))
-            .borders(Borders::NONE)
-            .style(Style::default().bg(Color::DarkGray));
-        let desc_text = Text::styled(
-            format!(" Are you sure you want to delete this file? [y/n]"),
-            Style::default().fg(Color::Red),
-        );
+            .title(title_pop_up)
+            .borders(Borders::ALL)
+            .style(Style::default());
+        let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
         let desc_paragraph = Paragraph::new(desc_text)
             .block(popup_block)
             .wrap(Wrap { trim: false });
         frame.render_widget(desc_paragraph, area);
-
     }
 }
 

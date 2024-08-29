@@ -77,7 +77,7 @@ pub fn make_dir(dir_name: &str) {
 }
 
 /// Delete a directory
-pub fn delete_dir(dir_name: &str) {
+pub fn delete_dir(dir_name: &PathBuf) {
     std::fs::remove_dir_all(dir_name).unwrap();
 }
 
