@@ -1,8 +1,6 @@
-#![allow(unused)]
-
 use crate::files::*;
 use ::std::path::PathBuf;
-use ratatui::widgets::{ListState, ScrollDirection, ScrollbarState};
+use ratatui::widgets::{ListState, ScrollbarState};
 use std::env::current_dir;
 #[derive(Debug)]
 pub enum CurrentScreen {
@@ -108,8 +106,7 @@ impl App {
             } else {
                 self.current_screen = CurrentScreen::Preview;
                 self.preview_string = read_file(&file.full_path);
-                self.preview_scroll_state
-                    .content_length(self.preview_string.len());
+                self.preview_scroll_state=self.preview_scroll_state.content_length(self.preview_string.len());
                 self.vertical_scroll = 0;
             }
         }

@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use std::io::Read;
 use std::path::PathBuf;
 #[derive(Debug, Clone)]
@@ -7,7 +5,6 @@ pub struct StfmFile {
     pub full_path: String,
     pub name: String,
     pub extension: String,
-    pub size: u64,
     pub is_dir: bool,
 }
 
@@ -33,7 +30,6 @@ pub fn list_files(current_dir: &PathBuf) -> Vec<StfmFile> {
                             }
                         },
                     },
-                    size: entry.metadata().unwrap().len(),
                     is_dir: entry.metadata().unwrap().is_dir(),
                 };
                 files.push(file);
@@ -81,26 +77,6 @@ pub fn delete_dir(dir_name: &PathBuf) {
     std::fs::remove_dir_all(dir_name).unwrap();
 }
 
-/// Rename a file
-pub fn rename_file(old_name: &str, new_name: &str) {
-    std::fs::rename(old_name, new_name).unwrap();
-}
-
-/// Copy a file
-pub fn copy_file(old_name: &str, new_name: &str) {
-    std::fs::copy(old_name, new_name).unwrap();
-}
-
-/// Get the absolute path of a file
-pub fn get_absolute_path(file_name: &str) -> String {
-    let path = std::path::Path::new(file_name);
-    return path.canonicalize().unwrap().display().to_string();
-}
-
-/// Check if a file exists
-pub fn file_exists(file_name: &PathBuf) -> bool {
-    return std::path::Path::new(file_name).exists();
-}
 #[cfg(test)]
 mod tests{
     use super::*;
