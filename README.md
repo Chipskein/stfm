@@ -9,14 +9,13 @@
    * [x] Add Input Validation in Input Block
    * [x] Create Error PopUp
    * [x] Add Help PopUp
-   * [] Fix input bug in release
-   * [] Add cursor to input
+   * [x] Add Different Color Scheme for entries
+   * [ ] Fix input bug in release
+   * [ ] Add cursor to input
    * [ ] Fix files with wrong Extension
    * [ ] Implement Copy file function
    * [ ] Implement Move
-   * [ ] Add Different Color Scheme for entries
    * [ ] Add support to non UTF-8 Files at preview (images/binaries)
-   * [ ] Support Tabs
 
 
 

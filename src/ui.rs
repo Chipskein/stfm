@@ -38,10 +38,15 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .borders(Borders::ALL)
                 .style(Style::default());
             let mut list_items = Vec::<ListItem>::new();
+
             app.files.iter().for_each(|file| {
+                let mut style =Style::default().fg(Color::Green);
+                if file.is_dir {
+                    style = Style::default().fg(Color::Cyan);
+                }
                 let widget_item = ListItem::new(Span::styled(
                     format!("[{}] {}", file.extension.to_uppercase(), file.name,),
-                    Style::default(),
+                    style,
                 ));
                 list_items.push(widget_item);
             });
@@ -63,9 +68,13 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .style(Style::default());
             let mut list_items = Vec::<ListItem>::new();
             app.files.iter().for_each(|file| {
+                let mut style =Style::default().fg(Color::Green);
+                if file.is_dir {
+                    style = Style::default().fg(Color::Cyan);
+                }
                 let widget_item = ListItem::new(Span::styled(
                     format!("[{}] {}", file.extension.to_uppercase(), file.name,),
-                    Style::default(),
+                    style,
                 ));
                 list_items.push(widget_item);
             });
