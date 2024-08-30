@@ -20,10 +20,7 @@ use crate::{
 pub fn ui(frame: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage(10),
-            Constraint::Percentage(90)
-        ])
+        .constraints([Constraint::Percentage(10), Constraint::Percentage(90)])
         .split(frame.area());
     let title_block = Block::default()
         .borders(Borders::ALL)
@@ -85,37 +82,43 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .style(Style::default());
             let text = Paragraph::new(Text::from(app.preview_string.clone()))
                 .block(preview_block)
-                .scroll((app.vertical_scroll as u16, 0));
+                .scroll((app.vertical_scroll as u16, app.horizontal_scroll as u16));
+
             frame.render_widget(text, chunk_main[1]);
             frame.render_stateful_widget(
                 Scrollbar::new(ScrollbarOrientation::VerticalRight),
                 chunk_main[1],
-                &mut app.preview_scroll_state,
+                &mut app.v_preview_scroll_state,
+            );
+            frame.render_stateful_widget(
+                Scrollbar::new(ScrollbarOrientation::HorizontalBottom),
+                chunk_main[1],
+                &mut app.h_preview_scroll_state,
             );
         }
         _ => {}
     }
     match app.current_screen {
-        CurrentScreen::IsNewFileADir =>{
+        CurrentScreen::IsNewFileADir => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
-            let mut title_pop_up=format!("Create new Entry",);
-            let mut text=format!(" Do you want to create a directory [y/n]");
+            let mut title_pop_up = format!("Create new Entry",);
+            let mut text = format!(" Do you want to create a directory [y/n]");
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
+            let desc_text = Text::styled(text, Style::default().fg(Color::Yellow));
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
                 .wrap(Wrap { trim: false });
             frame.render_widget(desc_paragraph, area);
         }
 
-        CurrentScreen::CreateNewFile=>{
+        CurrentScreen::CreateNewFile => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(45, 25, frame.area());
-            let chunks_pop_up=Layout::default()
+            let chunks_pop_up = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
                 .split(area);
@@ -142,35 +145,44 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(input, chunks_pop_up[1]);
         }
 
-        CurrentScreen::ConfirmDelete=>{
+        CurrentScreen::ConfirmDelete => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
-            let mut title_pop_up=format!("Delete file {}", app.selected_file.as_ref().unwrap().full_path);
-            let mut text=format!(" Are you sure you want to delete this file? [y/n]");
-            if app.selected_file.as_ref().unwrap().is_dir{
-                title_pop_up=format!("Delete directory {}", app.selected_file.as_ref().unwrap().full_path);
+            let mut title_pop_up = format!(
+                "Delete file {}",
+                app.selected_file.as_ref().unwrap().full_path
+            );
+            let mut text = format!(" Are you sure you want to delete this file? [y/n]");
+            if app.selected_file.as_ref().unwrap().is_dir {
+                title_pop_up = format!(
+                    "Delete directory {}",
+                    app.selected_file.as_ref().unwrap().full_path
+                );
                 text=format!(" Are you sure you want to delete this directory? All files inside will be deleted[y/n]");
             }
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
+            let desc_text = Text::styled(text, Style::default().fg(Color::Yellow));
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
                 .wrap(Wrap { trim: false });
             frame.render_widget(desc_paragraph, area);
         }
 
-        CurrentScreen::Rename =>{
+        CurrentScreen::Rename => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(45, 25, frame.area());
-            let chunks_pop_up=Layout::default()
+            let chunks_pop_up = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
                 .split(area);
             let popup_block = Block::default()
-                .title(format!("Rename Entry {}", app.selected_file.as_ref().unwrap().full_path))
+                .title(format!(
+                    "Rename Entry {}",
+                    app.selected_file.as_ref().unwrap().full_path
+                ))
                 .borders(Borders::ALL)
                 .style(Style::default());
             let desc_text = Text::styled(
@@ -193,10 +205,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(input, chunks_pop_up[1]);
         }
 
-        _=>{}
+        _ => {}
     }
-
-
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`

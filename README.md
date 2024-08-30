@@ -4,8 +4,8 @@
    * [x] Implement Rename
    * [x] Fix input block in create file e rename
    * [x] Show/hide hidden Files
-   * [ ] Add PageDown and PageUp Support
-   * [ ] Add horizontal Scroll at Preview
+   * [x] Add PageDown and PageUp Support
+   * [x] Add horizontal Scroll at Preview
    * [ ] Add Help PopUp
    * [ ] Fix files with wrong Extension
    * [ ] Implement Copy file function

@@ -52,35 +52,45 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     KeyCode::Char('q') | KeyCode::Esc => {
                         break Ok(true);
                     }
+                    
                     KeyCode::Char('n') => {
                         app.current_screen = CurrentScreen::IsNewFileADir;
                     }
+
                     KeyCode::Char('d') => match app.selected_file.clone() {
                         Some(_) => {
                             app.current_screen = CurrentScreen::ConfirmDelete;
                         }
                         None => {}
-                    },
+                    }
 
                     KeyCode::Char('r') => match app.selected_file.clone() {
                         Some(_) => {
                             app.current_screen = CurrentScreen::Rename;
                         }
                         None => {}
-                    },
+                    }
 
                     KeyCode::Char('.') => {
                         app.toggle_hidden();
-                    },
+                    }
 
+                    KeyCode::PageDown => {
+                        app.page_down();
+                    }
 
-                    
+                    KeyCode::PageUp => {
+                        app.page_up();
+                    }
+
                     KeyCode::Down => {
                         app.down();
                     }
+                    
                     KeyCode::Up => {
                         app.up();
                     }
+
                     KeyCode::Enter | KeyCode::Right => {
                         app.handle_selected_file();
                     }
@@ -94,17 +104,21 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     KeyCode::Char('q') | KeyCode::Esc => {
                         app.current_screen = CurrentScreen::Main;
                     }
+                    
                     KeyCode::Down => {
                         app.scroll_down();
                     }
+                    
                     KeyCode::Up => {
                         app.scroll_up();
                     }
+                    
                     KeyCode::Left => {
-                        // app.scroll_left();
+                        app.scroll_left();
                     }
+                    
                     KeyCode::Right => {
-                        // app.scroll_right();
+                        app.scroll_right();
                     }
 
                     _ => {}
@@ -114,10 +128,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.new_file_is_dir = true;
                         app.current_screen = CurrentScreen::CreateNewFile;
                     }
+
                     KeyCode::Char('n') => {
                         app.new_file_is_dir = false;
                         app.current_screen = CurrentScreen::CreateNewFile;
                     }
+
                     _ => {
                         app.new_file_is_dir = false;
                         app.current_screen = CurrentScreen::Main;
@@ -127,11 +143,13 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     KeyCode::Esc => {
                         app.current_screen = CurrentScreen::Main;
                     }
+
                     KeyCode::Enter => {
                         if !app.new_file.trim().is_empty() {
                             app.new_file(&app.new_file.clone());
                         }
                     }
+
                     KeyCode::Backspace => {
                         app.new_file.pop();
                     }
@@ -157,7 +175,8 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         }
                         _ => {}
                     },
-                },
+                }
+
                 CurrentScreen::ConfirmDelete => match key.code {
                     KeyCode::Char('y') => {
                         app.rm();
@@ -165,16 +184,19 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     _ => {
                         app.current_screen = CurrentScreen::Main;
                     }
-                },
+                }
+
                 CurrentScreen::Rename => match key.code {
                     KeyCode::Esc => {
                         app.current_screen = CurrentScreen::Main;
                     }
+
                     KeyCode::Enter => {
                         if !app.new_file.trim().is_empty() {
                             app.rename(&app.new_file.clone());
                         }
                     }
+
                     KeyCode::Backspace => {
                         app.new_file.pop();
                     }
@@ -199,8 +221,8 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             }
                         }
                         _ => {}
-                    },
-                },
+                    }
+                }
             }
         }
     }

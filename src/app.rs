@@ -24,8 +24,11 @@ pub struct App {
 
     /*PREVIEW */
     pub preview_string: String, // the string to be displayed in the preview block
-    pub preview_scroll_state: ScrollbarState, // the state of the vertical scrollbar at preview
+    pub v_preview_scroll_state: ScrollbarState, // the state of the vertical scrollbar at preview
     pub vertical_scroll: usize, // the vertical scroll position of the preview block
+    pub h_preview_scroll_state: ScrollbarState, // the state of the vertical scrollbar at preview
+    pub horizontal_scroll: usize, // the vertical scroll position of the preview block
+
     /*CreateNewFile */
     pub new_file: String, // the name of the new file to be created
     pub new_file_is_dir: bool, // if the new file is a directory
@@ -45,8 +48,10 @@ impl App {
             index_selected: None,
             list_state: ListState::default(),
             preview_string: String::new(),
-            preview_scroll_state: ScrollbarState::default(),
+            v_preview_scroll_state: ScrollbarState::default(),
+            h_preview_scroll_state: ScrollbarState::default(),
             vertical_scroll: 0,
+            horizontal_scroll: 0,
             new_file: String::new(),
             new_file_is_dir: false,
             show_hidden: true,
@@ -111,6 +116,18 @@ impl App {
         }
     }
 
+    pub fn page_up(&mut self) {
+        self.list_state.scroll_up_by(5);
+        self.index_selected = self.list_state.selected();
+        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+    }
+
+    pub fn page_down(&mut self) {
+        self.list_state.scroll_down_by(5);
+        self.index_selected = self.list_state.selected();
+        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+    }
+    
     pub fn handle_selected_file(&mut self) {
         if self.selected_file.is_some() {
             let file = self.selected_file.as_ref().unwrap();
@@ -119,8 +136,10 @@ impl App {
             } else {
                 self.current_screen = CurrentScreen::Preview;
                 self.preview_string = read_file(&file.full_path);
-                self.preview_scroll_state=self.preview_scroll_state.content_length(self.preview_string.len());
+                self.v_preview_scroll_state=self.v_preview_scroll_state.content_length(self.preview_string.len());
                 self.vertical_scroll = 0;
+                self.h_preview_scroll_state=self.h_preview_scroll_state.content_length(self.preview_string.len());
+                self.horizontal_scroll = 0;
             }
         }
     }
@@ -135,13 +154,23 @@ impl App {
     }
 
     pub fn scroll_up(&mut self) {
-        self.vertical_scroll = self.vertical_scroll.saturating_sub(1);
-        self.preview_scroll_state = self.preview_scroll_state.position(self.vertical_scroll);
+        self.vertical_scroll = self.vertical_scroll.saturating_sub(10);
+        self.v_preview_scroll_state = self.v_preview_scroll_state.position(self.vertical_scroll);
     }
     
     pub fn scroll_down(&mut self) {
-        self.vertical_scroll = self.vertical_scroll.saturating_add(1);
-        self.preview_scroll_state = self.preview_scroll_state.position(self.vertical_scroll);
+        self.vertical_scroll = self.vertical_scroll.saturating_add(10);
+        self.v_preview_scroll_state = self.v_preview_scroll_state.position(self.vertical_scroll);
+    }
+
+    pub fn scroll_left(&mut self) {
+        self.horizontal_scroll = self.horizontal_scroll.saturating_sub(10);
+        self.h_preview_scroll_state = self.h_preview_scroll_state.position(self.horizontal_scroll);
+    }
+
+    pub fn scroll_right(&mut self) {
+        self.horizontal_scroll = self.horizontal_scroll.saturating_add(10);
+        self.h_preview_scroll_state = self.h_preview_scroll_state.position(self.horizontal_scroll);
     }
 
     pub fn new_file(&mut self, file_name: &str) {
