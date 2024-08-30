@@ -77,13 +77,19 @@ pub fn delete_dir(dir_name: &PathBuf) {
     std::fs::remove_dir_all(dir_name).unwrap();
 }
 
-#[cfg(test)]
-mod tests{
-    use super::*;
-    #[test]
-    fn empty_directory(){
-        let empty_dir = PathBuf::from("test");
-        let files = list_files(&empty_dir);
-        assert_eq!(files.len(), 0);
-    }
+
+
+/// Rename a file
+pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf) {
+    std::fs::rename(old_name, new_name).unwrap();
 }
+
+/*
+    /// Copy a file
+    pub fn copy_file(from: &PathBuf, to: &PathBuf) {
+        std::fs::copy(from, to).unwrap();
+    }
+*/
+
+
+

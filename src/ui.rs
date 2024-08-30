@@ -95,71 +95,108 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         }
         _ => {}
     }
-    if let CurrentScreen::IsNewFileADir = app.current_screen {
-        frame.render_widget(Clear, frame.area());
-        let area = centered_rect(40, 20, frame.area());
-        let mut title_pop_up=format!("Create new Entry",);
-        let mut text=format!(" Do you want to create a directory [y/n]");
-        let popup_block = Block::default()
-            .title(title_pop_up)
-            .borders(Borders::ALL)
-            .style(Style::default());
-        let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
-        let desc_paragraph = Paragraph::new(desc_text)
-            .block(popup_block)
-            .wrap(Wrap { trim: false });
-        frame.render_widget(desc_paragraph, area);
-    }
-
-    if let CurrentScreen::CreateNewFile = app.current_screen {
-        frame.render_widget(Clear, frame.area());
-        let area = centered_rect(45, 25, frame.area());
-        let chunks_pop_up=Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
-            .split(area);
-        let popup_block = Block::default()
-            .title("Create a new entry")
-            .borders(Borders::ALL)
-            .style(Style::default());
-        let desc_text = Text::styled(
-            " Write Down the name of the new entry then press 'Enter' to create it or 'Esc' to cancel",
-            Style::default().fg(Color::Yellow),
-        );
-        let desc_paragraph = Paragraph::new(desc_text)
-            .block(popup_block)
-            .wrap(Wrap { trim: false });
-        frame.render_widget(desc_paragraph, chunks_pop_up[0]);
-        let input_block = Block::default()
-            .borders(Borders::ALL)
-            .style(Style::default().bg(Color::White).fg(Color::Black));
-        let input = Paragraph::new(Text::styled(
-            app.new_file.clone(),
-            Style::default().fg(Color::Black).bg(Color::White),
-        ))
-        .block(input_block);
-        frame.render_widget(input, chunks_pop_up[1]);
-    }
-
-    if let CurrentScreen::ConfirmDelete = app.current_screen {
-        frame.render_widget(Clear, frame.area());
-        let area = centered_rect(40, 20, frame.area());
-        let mut title_pop_up=format!("Delete file {}", app.selected_file.as_ref().unwrap().full_path);
-        let mut text=format!(" Are you sure you want to delete this file? [y/n]");
-        if app.selected_file.as_ref().unwrap().is_dir{
-            title_pop_up=format!("Delete directory {}", app.selected_file.as_ref().unwrap().full_path);
-            text=format!(" Are you sure you want to delete this directory? All files inside will be deleted[y/n]");
+    match app.current_screen {
+        CurrentScreen::IsNewFileADir =>{
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(40, 20, frame.area());
+            let mut title_pop_up=format!("Create new Entry",);
+            let mut text=format!(" Do you want to create a directory [y/n]");
+            let popup_block = Block::default()
+                .title(title_pop_up)
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, area);
         }
-        let popup_block = Block::default()
-            .title(title_pop_up)
-            .borders(Borders::ALL)
-            .style(Style::default());
-        let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
-        let desc_paragraph = Paragraph::new(desc_text)
-            .block(popup_block)
-            .wrap(Wrap { trim: false });
-        frame.render_widget(desc_paragraph, area);
+
+        CurrentScreen::CreateNewFile=>{
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(45, 25, frame.area());
+            let chunks_pop_up=Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
+                .split(area);
+            let popup_block = Block::default()
+                .title("Create a new entry")
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(
+                " Write Down the name of the new entry then press 'Enter' to create it or 'Esc' to cancel",
+                Style::default().fg(Color::Yellow),
+            );
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, chunks_pop_up[0]);
+            let input_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().bg(Color::White).fg(Color::Black));
+            let input = Paragraph::new(Text::styled(
+                app.new_file.clone(),
+                Style::default().fg(Color::Black).bg(Color::White),
+            ))
+            .block(input_block);
+            frame.render_widget(input, chunks_pop_up[1]);
+        }
+
+        CurrentScreen::ConfirmDelete=>{
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(40, 20, frame.area());
+            let mut title_pop_up=format!("Delete file {}", app.selected_file.as_ref().unwrap().full_path);
+            let mut text=format!(" Are you sure you want to delete this file? [y/n]");
+            if app.selected_file.as_ref().unwrap().is_dir{
+                title_pop_up=format!("Delete directory {}", app.selected_file.as_ref().unwrap().full_path);
+                text=format!(" Are you sure you want to delete this directory? All files inside will be deleted[y/n]");
+            }
+            let popup_block = Block::default()
+                .title(title_pop_up)
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(text,Style::default().fg(Color::Yellow));
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, area);
+        }
+
+        CurrentScreen::Rename =>{
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(45, 25, frame.area());
+            let chunks_pop_up=Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
+                .split(area);
+            let popup_block = Block::default()
+                .title(format!("Rename Entry {}", app.selected_file.as_ref().unwrap().full_path))
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(
+                " Write Down the name of the new entry then press 'Enter' to change it or 'Esc' to cancel",
+                Style::default().fg(Color::Yellow),
+            );
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, chunks_pop_up[0]);
+
+            let input_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().bg(Color::White).fg(Color::Black));
+            let input = Paragraph::new(Text::styled(
+                app.new_file.clone(),
+                Style::default().fg(Color::Black).bg(Color::White),
+            ))
+            .block(input_block);
+            frame.render_widget(input, chunks_pop_up[1]);
+        }
+
+        _=>{}
     }
+
+
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`

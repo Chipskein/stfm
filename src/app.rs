@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 use crate::files::*;
 use ::std::path::PathBuf;
 use ratatui::widgets::{ListState, ScrollbarState};
@@ -9,6 +10,7 @@ pub enum CurrentScreen {
     CreateNewFile,
     ConfirmDelete,
     IsNewFileADir,
+    Rename,
 }
 #[derive(Debug)]
 pub struct App {
@@ -125,6 +127,7 @@ impl App {
         self.vertical_scroll = self.vertical_scroll.saturating_sub(1);
         self.preview_scroll_state = self.preview_scroll_state.position(self.vertical_scroll);
     }
+    
     pub fn scroll_down(&mut self) {
         self.vertical_scroll = self.vertical_scroll.saturating_add(1);
         self.preview_scroll_state = self.preview_scroll_state.position(self.vertical_scroll);
@@ -163,4 +166,19 @@ impl App {
         self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
         self.current_screen = CurrentScreen::Main;
     }
+
+    pub fn rename(&mut self, new_name: &str) {
+        if self.selected_file.is_some(){
+            let file = self.selected_file.clone().unwrap();
+            let old_path=PathBuf::from(&file.full_path);
+            let parent_dir=PathBuf::from(&self.current_dir);
+            let new_path = parent_dir.join(new_name);
+            rename_file(&old_path, &new_path);
+            self.files = list_files(&self.current_dir);
+            self.index_selected = Some(0);
+            self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+            self.current_screen = CurrentScreen::Main;
+        }
+    }
+
 }
