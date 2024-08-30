@@ -27,7 +27,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         .style(Style::default());
     let title = Paragraph::new(Text::styled(
         app.current_dir.to_string_lossy(),
-        Style::default().fg(Color::Green),
+        Style::default().fg(Color::Cyan),
     ))
     .block(title_block);
     frame.render_widget(title, chunks[0]);
@@ -104,12 +104,12 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
             let mut title_pop_up = format!("Create new Entry",);
-            let mut text = format!(" Do you want to create a directory [y/n]");
+            let mut text = format!("Do you want to create a directory [y/n]");
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let desc_text = Text::styled(text, Style::default().fg(Color::Yellow));
+            let desc_text = Text::styled(text, Style::default());
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
                 .wrap(Wrap { trim: false });
@@ -129,7 +129,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .style(Style::default());
             let desc_text = Text::styled(
                 " Write Down the name of the new entry then press 'Enter' to create it or 'Esc' to cancel",
-                Style::default().fg(Color::Yellow),
+                Style::default(),
             );
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
@@ -137,10 +137,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(desc_paragraph, chunks_pop_up[0]);
             let input_block = Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().bg(Color::White).fg(Color::Black));
+                .style(Style::default());
             let input = Paragraph::new(Text::styled(
                 app.new_file.clone(),
-                Style::default().fg(Color::Black).bg(Color::White),
+                Style::default(),
             ))
             .block(input_block);
             frame.render_widget(input, chunks_pop_up[1]);
@@ -197,10 +197,10 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
             let input_block = Block::default()
                 .borders(Borders::ALL)
-                .style(Style::default().bg(Color::White).fg(Color::Black));
+                .style(Style::default());
             let input = Paragraph::new(Text::styled(
                 app.new_file.clone(),
-                Style::default().fg(Color::Black).bg(Color::White),
+                Style::default(),
             ))
             .block(input_block);
             frame.render_widget(input, chunks_pop_up[1]);
@@ -216,7 +216,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .title(title_pop_up)
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let desc_text = Text::styled(text, Style::default().fg(Color::Yellow));
+            let desc_text = Text::styled(text, Style::default());
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
                 .wrap(Wrap { trim: false });
@@ -226,14 +226,14 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         CurrentScreen::Help =>{
             let msg = app.error_message.clone().unwrap_or(String::new());
             frame.render_widget(Clear, frame.area());
-            let area = centered_rect(60, 40, frame.area());
+            let area = centered_rect(60, 50, frame.area());
             let mut title_pop_up = format!("Help");
             let mut text = format!("Welcome to Simple Terminal File Manager\nThis is a simple file manager that allows you to navigate through your files and directories\nYou can navigate through the files using the arrow keys\nYou can open a file or directory by pressing 'Enter' or 'Right Arrow'\nYou can go back to the previous directory by pressing 'Backspace' or 'Left' key\nYou can see a preview of the file by selecting it\nWith preview open you can scroll down by pressing 'Down' and scroll up by pressing 'Up'\nWith preview open you can scroll right by pressing 'Right' and scroll left by pressing 'Left'\nWith preview open you can go back to the main screen by pressing 'q' or 'Esc'\nYou can create a new file/dir by pressing 'n'\nYou can delete a file/dir by pressing 'd'\nYou can rename a file/dir by pressing 'r'\nYou can toggle hidden files by pressing '.'\nYou can scroll down by pressing 'PageDown'\nYou can scroll up by pressing 'PageUp'\nYou can exit the application by pressing 'q' or 'Esc'\n");
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let desc_text = Text::styled(text, Style::default().fg(Color::Yellow));
+            let desc_text = Text::styled(text, Style::default());
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
                 .wrap(Wrap { trim: false });

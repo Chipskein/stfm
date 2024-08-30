@@ -9,6 +9,7 @@
    * [x] Add Input Validation in Input Block
    * [x] Create Error PopUp
    * [x] Add Help PopUp
+   * [x] Fix input bug in release
    * [ ] Fix files with wrong Extension
    * [ ] Implement Copy file function
    * [ ] Implement Move
