@@ -6,12 +6,12 @@
    * [x] Show/hide hidden Files
    * [x] Add PageDown and PageUp Support
    * [x] Add horizontal Scroll at Preview
+   * [x] Add Input Validation in Input Block
+   * [ ] Create Error PopUp
    * [ ] Add Help PopUp
    * [ ] Fix files with wrong Extension
    * [ ] Implement Copy file function
    * [ ] Implement Move
-   * [ ] Create Error PopUp
-   * [ ] Add Input Validation in Input Block
    * [ ] Add Different Color Scheme for entries
    * [ ] Add support to non UTF-8 Files at preview (images/binaries)
    * [ ] Support Tabs
