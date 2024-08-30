@@ -48,6 +48,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 continue;
             }
             match app.current_screen {
+
                 CurrentScreen::Main => match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {
                         break Ok(true);
@@ -61,14 +62,21 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         Some(_) => {
                             app.current_screen = CurrentScreen::ConfirmDelete;
                         }
-                        None => {}
+                        None => {
+                            app.error_message = Some("No file selected".to_string());
+                            app.current_screen = CurrentScreen::ErrorPopUp;
+
+                        }
                     }
 
                     KeyCode::Char('r') => match app.selected_file.clone() {
                         Some(_) => {
                             app.current_screen = CurrentScreen::Rename;
                         }
-                        None => {}
+                        None => {
+                            app.error_message = Some("No file selected".to_string());
+                            app.current_screen = CurrentScreen::ErrorPopUp;
+                        }
                     }
 
                     KeyCode::Char('.') => {
@@ -222,6 +230,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         }
                         _ => {}
                     }
+                }
+            
+                CurrentScreen::ErrorPopUp => match key.code {
+                    _ => {}
                 }
             }
         }

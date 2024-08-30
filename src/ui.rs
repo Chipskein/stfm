@@ -99,6 +99,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         _ => {}
     }
     match app.current_screen {
+        
         CurrentScreen::IsNewFileADir => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
@@ -203,6 +204,23 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             ))
             .block(input_block);
             frame.render_widget(input, chunks_pop_up[1]);
+        }
+
+        CurrentScreen::ErrorPopUp =>{
+            let msg = app.error_message.clone().unwrap_or(String::new());
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(40, 20, frame.area());
+            let mut title_pop_up = format!("Error",);
+            let mut text = format!("The following error occured :{}",msg);
+            let popup_block = Block::default()
+                .title(title_pop_up)
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(text, Style::default().fg(Color::Yellow));
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, area);
         }
 
         _ => {}

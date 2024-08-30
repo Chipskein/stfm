@@ -7,7 +7,7 @@
    * [x] Add PageDown and PageUp Support
    * [x] Add horizontal Scroll at Preview
    * [x] Add Input Validation in Input Block
-   * [ ] Create Error PopUp
+   * [x] Create Error PopUp
    * [ ] Add Help PopUp
    * [ ] Fix files with wrong Extension
    * [ ] Implement Copy file function

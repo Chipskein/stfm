@@ -11,6 +11,7 @@ pub enum CurrentScreen {
     ConfirmDelete,
     IsNewFileADir,
     Rename,
+    ErrorPopUp,
 }
 #[derive(Debug)]
 pub struct App {
@@ -32,7 +33,7 @@ pub struct App {
     /*CreateNewFile */
     pub new_file: String, // the name of the new file to be created
     pub new_file_is_dir: bool, // if the new file is a directory
-
+    pub error_message:Option<String>,
     pub show_hidden: bool, // if hidden files should be shown
 }
 
@@ -55,6 +56,7 @@ impl App {
             new_file: String::new(),
             new_file_is_dir: false,
             show_hidden: true,
+            error_message:None,
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
