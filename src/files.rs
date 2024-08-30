@@ -1,5 +1,7 @@
 use std::io::Read;
-use std::path::PathBuf;
+use std::path::{PathBuf,Path};
+
+
 #[derive(Debug, Clone)]
 pub struct StfmFile {
     pub full_path: String,
@@ -8,37 +10,65 @@ pub struct StfmFile {
     pub is_dir: bool,
 }
 
+#[cfg(windows)]
+use std::os::windows::fs::MetadataExt; // for accessing Windows-specific metadata
+pub fn is_hidden<P: AsRef<Path>>(path: P) -> std::io::Result<bool> {
+    let path = path.as_ref();
+    // Unix-like systems: Check if the file name starts with a dot
+    #[cfg(unix)]
+    {
+        Ok(path.file_name()
+            .and_then(|name| name.to_str())
+            .map_or(false, |name| name.starts_with('.')))
+    }
+
+    // Windows: Check the file attributes for the HIDDEN flag
+    #[cfg(windows)]
+    {
+        let metadata = fs::metadata(path)?;
+        let attributes = metadata.file_attributes();
+        Ok(attributes & 0x2 != 0) // 0x2 is the FILE_ATTRIBUTE_HIDDEN flag
+    }
+}
 
 /// List all files in the current directory
-pub fn list_files(current_dir: &PathBuf) -> Vec<StfmFile> {
+pub fn list_files(current_dir: &PathBuf, show_hidden: bool) -> Vec<StfmFile> {
     let mut files = Vec::new();
     match std::fs::read_dir(current_dir) {
         Ok(files_in_dir) => {
             for entry in files_in_dir {
-                let entry = entry.unwrap();
-                let path = entry.path();
-                let file=StfmFile {
-                    full_path: path.to_string_lossy().to_string(),
-                    name: path.file_name().unwrap().to_string_lossy().to_string(),
-                    extension: match path.extension() {
-                        Some(ext) => ext.to_string_lossy().to_string(),
-                        None => {
-                            if entry.metadata().unwrap().is_dir(){
-                                "DIR".to_string()
-                            } else{
-                                "FILE".to_string()
-                            }
-                        },
-                    },
-                    is_dir: entry.metadata().unwrap().is_dir(),
-                };
-                files.push(file);
+                match entry {
+                    Ok(entry) => {
+                        let path = entry.path();
+                        if !show_hidden && is_hidden(&path).unwrap() {
+                            continue;
+                        }
+                        let file = StfmFile {
+                            full_path: path.to_string_lossy().to_string(),
+                            name: path.file_name().unwrap().to_string_lossy().to_string(),
+                            extension: match path.extension() {
+                                Some(ext) => ext.to_string_lossy().to_string(),
+                                None => {
+                                    if entry.metadata().unwrap().is_dir() {
+                                        "DIR".to_string()
+                                    } else {
+                                        "FILE".to_string()
+                                    }
+                                }
+                            },
+                            is_dir: entry.metadata().unwrap().is_dir(),
+                        };
+                        files.push(file);
+                    }
+                    Err(_) => {
+                        continue;
+                    }
+                }
             }
-        },
-        _ => {},
+        }
+        _ => {}
     }
     return files;
-    
 }
 
 /// Create a file
@@ -62,8 +92,8 @@ pub fn read_file(file_name: &str) -> String {
 /// Change the current directory
 pub fn change_dir(dir_name: &PathBuf) {
     match std::env::set_current_dir(dir_name) {
-        Ok(_) => {},
-        Err(_) => {},
+        Ok(_) => {}
+        Err(_) => {}
     }
 }
 
@@ -77,8 +107,6 @@ pub fn delete_dir(dir_name: &PathBuf) {
     std::fs::remove_dir_all(dir_name).unwrap();
 }
 
-
-
 /// Rename a file
 pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf) {
     std::fs::rename(old_name, new_name).unwrap();
@@ -90,6 +118,3 @@ pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf) {
         std::fs::copy(from, to).unwrap();
     }
 */
-
-
-

@@ -29,12 +29,14 @@ pub struct App {
     /*CreateNewFile */
     pub new_file: String, // the name of the new file to be created
     pub new_file_is_dir: bool, // if the new file is a directory
+
+    pub show_hidden: bool, // if hidden files should be shown
 }
 
 impl App {
     pub fn new() -> App {
         let current_dir = current_dir().unwrap();
-        let files = list_files(&current_dir);
+        let files = list_files(&current_dir,true);
         let mut a = App {
             current_screen: CurrentScreen::Main,
             current_dir,
@@ -47,6 +49,7 @@ impl App {
             vertical_scroll: 0,
             new_file: String::new(),
             new_file_is_dir: false,
+            show_hidden: true,
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -54,10 +57,18 @@ impl App {
         a
     }
 
+    pub fn toggle_hidden(&mut self) {
+        self.show_hidden = !self.show_hidden;
+        self.files = list_files(&self.current_dir,self.show_hidden);
+        self.list_state.select(Some(0));
+        self.index_selected = Some(0);
+        self.selected_file = self.files.get(0).cloned();
+    }
+
     pub fn cd(&mut self, dir_name: String) {
         self.current_dir.push(dir_name);
         change_dir(&self.current_dir);
-        self.files = list_files(&self.current_dir);
+        self.files = list_files(&self.current_dir,self.show_hidden);
         self.list_state.select(Some(0));
         self.index_selected = Some(0);
         self.selected_file = self.files.get(0).cloned();
@@ -116,7 +127,7 @@ impl App {
 
     pub fn previus_dir(&mut self) {
         self.current_dir.pop();
-        self.files = list_files(&self.current_dir);
+        self.files = list_files(&self.current_dir,self.show_hidden);
         self.index_selected = Some(0);
         self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
         self.list_state.select_first();
@@ -137,7 +148,7 @@ impl App {
         if !self.new_file_is_dir {
             let full_new_path = PathBuf::from(&self.current_dir).join(file_name);
             create_file(&full_new_path);
-            self.files = list_files(&self.current_dir);
+            self.files = list_files(&self.current_dir,self.show_hidden);
             self.index_selected = Some(0);
             self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
             self.current_screen = CurrentScreen::Main;
@@ -145,7 +156,7 @@ impl App {
         } else {
             let full_new_path = PathBuf::from(&self.current_dir).join(file_name);
             make_dir(&full_new_path);
-            self.files = list_files(&self.current_dir);
+            self.files = list_files(&self.current_dir,self.show_hidden);
             self.index_selected = Some(0);
             self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
             self.current_screen = CurrentScreen::Main;
@@ -161,7 +172,7 @@ impl App {
         } else {
             delete_file(&PathBuf::from(file.full_path.clone()));
         }
-        self.files = list_files(&self.current_dir);
+        self.files = list_files(&self.current_dir,self.show_hidden);
         self.index_selected = Some(0);
         self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
         self.current_screen = CurrentScreen::Main;
@@ -174,7 +185,7 @@ impl App {
             let parent_dir=PathBuf::from(&self.current_dir);
             let new_path = parent_dir.join(new_name);
             rename_file(&old_path, &new_path);
-            self.files = list_files(&self.current_dir);
+            self.files = list_files(&self.current_dir,self.show_hidden);
             self.index_selected = Some(0);
             self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
             self.current_screen = CurrentScreen::Main;

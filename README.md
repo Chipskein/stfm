@@ -3,7 +3,7 @@
    * [x] Implement Basic file functions(create,rm,list)
    * [x] Implement Rename
    * [x] Fix input block in create file e rename
-   * [ ] Show/hide hidden Files
+   * [x] Show/hide hidden Files
    * [ ] Add PageDown and PageUp Support
    * [ ] Add horizontal Scroll at Preview
    * [ ] Add Help PopUp
