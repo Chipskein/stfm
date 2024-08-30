@@ -8,7 +8,7 @@
    * [x] Add horizontal Scroll at Preview
    * [x] Add Input Validation in Input Block
    * [x] Create Error PopUp
-   * [ ] Add Help PopUp
+   * [x] Add Help PopUp
    * [ ] Fix files with wrong Extension
    * [ ] Implement Copy file function
    * [ ] Implement Move

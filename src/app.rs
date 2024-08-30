@@ -12,6 +12,7 @@ pub enum CurrentScreen {
     IsNewFileADir,
     Rename,
     ErrorPopUp,
+    Help,
 }
 #[derive(Debug)]
 pub struct App {

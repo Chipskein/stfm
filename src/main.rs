@@ -58,6 +58,10 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         app.current_screen = CurrentScreen::IsNewFileADir;
                     }
 
+                    KeyCode::Char('h') => {
+                        app.current_screen = CurrentScreen::Help;
+                    }
+
                     KeyCode::Char('d') => match app.selected_file.clone() {
                         Some(_) => {
                             app.current_screen = CurrentScreen::ConfirmDelete;
@@ -233,8 +237,17 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 }
             
                 CurrentScreen::ErrorPopUp => match key.code {
-                    _ => {}
+                    _ => {
+                        app.current_screen = CurrentScreen::Main;
+                    }
                 }
+
+                CurrentScreen::Help => match key.code {
+                    _ => {
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                }
+
             }
         }
     }
