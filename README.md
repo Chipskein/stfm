@@ -10,9 +10,10 @@
    * [x] Create Error PopUp
    * [x] Add Help PopUp
    * [x] Add Different Color Scheme for entries
-   * [ ] Fix input bug in release
-   * [ ] Add cursor to input
-   * [ ] Fix files with wrong Extension
+   * [x] Fix files with wrong Extension
+   * [x] Add syslink support
+   * [x] Add Error handling
+   * [ ] Fix input bug in release(Alacritty does not help render)
    * [ ] Implement Copy file function
    * [ ] Implement Move
    * [ ] Add support to non UTF-8 Files at preview (images/binaries)

@@ -1,6 +1,5 @@
-use std::io::Read;
+use std::io::{Error, Read};
 use std::path::{PathBuf,Path};
-
 
 #[derive(Debug, Clone)]
 pub struct StfmFile {
@@ -43,20 +42,39 @@ pub fn list_files(current_dir: &PathBuf, show_hidden: bool) -> Vec<StfmFile> {
                         if !show_hidden && is_hidden(&path).unwrap() {
                             continue;
                         }
+                        let filename= match  path.file_name() {
+                            Some(name) => name.to_string_lossy().to_string(),
+                            None => "UNKNOWN".to_string()
+                        };
+                        let metadata = match  entry.metadata() {
+                            Ok(meta) => {meta}
+                            Err(_) => {continue;}
+                        };
+                        let ext= match path.extension() {
+                            Some(ext) => {
+                                if !metadata.is_dir() {
+                                    ext.to_string_lossy().to_string()
+                                } else{
+                                    "DIR".to_string()
+                                }
+                            }
+                            None => {
+                                if metadata.file_type().is_symlink() {
+                                    "LINK".to_string()
+                                } else if metadata.is_dir() {
+                                    "DIR".to_string()
+                                } else if metadata.is_file() {
+                                    "FILE".to_string()
+                                } else {
+                                    "UNKNOWN".to_string()
+                                }
+                            }
+                        };
                         let file = StfmFile {
                             full_path: path.to_string_lossy().to_string(),
-                            name: path.file_name().unwrap().to_string_lossy().to_string(),
-                            extension: match path.extension() {
-                                Some(ext) => ext.to_string_lossy().to_string(),
-                                None => {
-                                    if entry.metadata().unwrap().is_dir() {
-                                        "DIR".to_string()
-                                    } else {
-                                        "FILE".to_string()
-                                    }
-                                }
-                            },
-                            is_dir: entry.metadata().unwrap().is_dir(),
+                            name: filename,
+                            extension: ext,
+                            is_dir: metadata.is_dir(),
                         };
                         files.push(file);
                     }
@@ -72,49 +90,94 @@ pub fn list_files(current_dir: &PathBuf, show_hidden: bool) -> Vec<StfmFile> {
 }
 
 /// Create a file
-pub fn create_file(file_path: &PathBuf) {
-    std::fs::File::create(file_path).unwrap();
+pub fn create_file(file_path: &PathBuf)-> Result<bool, Error> {
+    match std::fs::File::create(file_path){
+        Ok(_) => {
+            Ok(true)
+        }
+        Err(e) => {
+            Err(e)
+        }
+    }
 }
 
 /// Delete a file
-pub fn delete_file(file_name: &PathBuf) {
-    std::fs::remove_file(file_name).unwrap();
+pub fn delete_file(file_name: &PathBuf)-> Result<bool, Error> {
+    match std::fs::remove_file(file_name){
+        Ok(_) => {
+            Ok(true)
+        }
+        Err(e) => {
+            Err(e)
+        }
+    }
+
 }
 
 /// Read a file
-pub fn read_file(file_name: &str) -> String {
-    let mut file = std::fs::File::open(file_name).unwrap();
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
-    return contents;
+pub fn read_file(file_name: &str) -> Result<String,Error> {
+    match std::fs::File::open(file_name) {
+        Ok(mut file) => {
+            let mut contents = String::new();
+            match file.read_to_string(&mut contents) {
+                Ok(_) => {
+                    Ok(contents)
+                }
+                Err(e) => {
+                    Err(e)
+                }
+            }
+        }
+        Err(e) => {
+            Err(e)
+        }
+    }
 }
 
 /// Change the current directory
-pub fn change_dir(dir_name: &PathBuf) {
+pub fn change_dir(dir_name: &PathBuf)-> Result<bool, Error> {
     match std::env::set_current_dir(dir_name) {
-        Ok(_) => {}
-        Err(_) => {}
+        Ok(_) => {
+            Ok(true)
+        }
+        Err(e) => {
+            Err(e)
+        }
     }
 }
 
 /// Make a directory
-pub fn make_dir(dir_name: &PathBuf) {
-    std::fs::create_dir(dir_name).unwrap();
+pub fn make_dir(dir_name: &PathBuf)-> Result<bool, Error> {
+    match std::fs::create_dir(dir_name){
+        Ok(_) => {
+            Ok(true)
+        }
+        Err(e) => {
+            Err(e)
+        }
+    }
 }
 
 /// Delete a directory
-pub fn delete_dir(dir_name: &PathBuf) {
-    std::fs::remove_dir_all(dir_name).unwrap();
+pub fn delete_dir(dir_name: &PathBuf)-> Result<bool, Error> {
+    match std::fs::remove_dir_all(dir_name){
+        Ok(_) => {
+            Ok(true)
+        }
+        Err(e) => {
+            Err(e)
+        }
+    }
 }
 
 /// Rename a file
-pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf) {
-    std::fs::rename(old_name, new_name).unwrap();
-}
-
-/*
-    /// Copy a file
-    pub fn copy_file(from: &PathBuf, to: &PathBuf) {
-        std::fs::copy(from, to).unwrap();
+pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf)-> Result<bool, Error> {
+    match std::fs::rename(old_name, new_name){
+        Ok(_) => {
+            Ok(true)
+        }
+        Err(e) => {
+            Err(e)
+        }
     }
-*/
+}

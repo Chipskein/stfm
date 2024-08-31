@@ -225,7 +225,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .title(title_pop_up)
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let desc_text = Text::styled(text, Style::default());
+            let desc_text = Text::styled(text, Style::default().fg(Color::Red));
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
                 .wrap(Wrap { trim: false });

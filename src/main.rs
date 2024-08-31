@@ -238,6 +238,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
             
                 CurrentScreen::ErrorPopUp => match key.code {
                     _ => {
+                        app.error_message = None;
                         app.current_screen = CurrentScreen::Main;
                     }
                 }

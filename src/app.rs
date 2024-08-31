@@ -32,16 +32,16 @@ pub struct App {
     pub horizontal_scroll: usize, // the vertical scroll position of the preview block
 
     /*CreateNewFile */
-    pub new_file: String, // the name of the new file to be created
+    pub new_file: String,      // the name of the new file to be created
     pub new_file_is_dir: bool, // if the new file is a directory
-    pub error_message:Option<String>,
+    pub error_message: Option<String>,
     pub show_hidden: bool, // if hidden files should be shown
 }
 
 impl App {
     pub fn new() -> App {
         let current_dir = current_dir().unwrap();
-        let files = list_files(&current_dir,true);
+        let files = list_files(&current_dir, true);
         let mut a = App {
             current_screen: CurrentScreen::Main,
             current_dir,
@@ -57,7 +57,7 @@ impl App {
             new_file: String::new(),
             new_file_is_dir: false,
             show_hidden: true,
-            error_message:None,
+            error_message: None,
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -67,16 +67,25 @@ impl App {
 
     pub fn toggle_hidden(&mut self) {
         self.show_hidden = !self.show_hidden;
-        self.files = list_files(&self.current_dir,self.show_hidden);
+        self.files = list_files(&self.current_dir, self.show_hidden);
         self.list_state.select(Some(0));
         self.index_selected = Some(0);
         self.selected_file = self.files.get(0).cloned();
     }
 
     pub fn cd(&mut self, dir_name: String) {
-        self.current_dir.push(dir_name);
-        change_dir(&self.current_dir);
-        self.files = list_files(&self.current_dir,self.show_hidden);
+        let mut new_path = self.current_dir.clone();
+        new_path.push(dir_name);
+        match change_dir(&new_path) {
+            Ok(_) => {}
+            Err(e) => {
+                self.error_message = Some(e.to_string());
+                self.current_screen = CurrentScreen::ErrorPopUp;
+                return;
+            }
+        };
+        self.current_dir = new_path;
+        self.files = list_files(&self.current_dir, self.show_hidden);
         self.list_state.select(Some(0));
         self.index_selected = Some(0);
         self.selected_file = self.files.get(0).cloned();
@@ -130,26 +139,39 @@ impl App {
         self.index_selected = self.list_state.selected();
         self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
     }
-    
+
     pub fn handle_selected_file(&mut self) {
-        if self.selected_file.is_some() {
-            let file = self.selected_file.as_ref().unwrap();
-            if file.is_dir {
-                self.cd(file.name.clone());
-            } else {
-                self.current_screen = CurrentScreen::Preview;
-                self.preview_string = read_file(&file.full_path);
-                self.v_preview_scroll_state=self.v_preview_scroll_state.content_length(self.preview_string.len());
-                self.vertical_scroll = 0;
-                self.h_preview_scroll_state=self.h_preview_scroll_state.content_length(self.preview_string.len());
-                self.horizontal_scroll = 0;
+        match self.selected_file.clone() {
+            Some(file) => {
+                if file.is_dir {
+                    self.cd(file.name.clone());
+                } else {
+                    self.current_screen = CurrentScreen::Preview;
+                    self.preview_string = match read_file(&file.full_path) {
+                        Ok(content) => content,
+                        Err(e) => {
+                            self.error_message = Some(e.to_string());
+                            self.current_screen = CurrentScreen::ErrorPopUp;
+                            return;
+                        }
+                    };
+                    self.v_preview_scroll_state = self
+                        .v_preview_scroll_state
+                        .content_length(self.preview_string.len());
+                    self.vertical_scroll = 0;
+                    self.h_preview_scroll_state = self
+                        .h_preview_scroll_state
+                        .content_length(self.preview_string.len());
+                    self.horizontal_scroll = 0;
+                }
             }
+            None => {}
         }
     }
 
     pub fn previus_dir(&mut self) {
         self.current_dir.pop();
-        self.files = list_files(&self.current_dir,self.show_hidden);
+        self.files = list_files(&self.current_dir, self.show_hidden);
         self.index_selected = Some(0);
         self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
         self.list_state.select_first();
@@ -160,7 +182,7 @@ impl App {
         self.vertical_scroll = self.vertical_scroll.saturating_sub(10);
         self.v_preview_scroll_state = self.v_preview_scroll_state.position(self.vertical_scroll);
     }
-    
+
     pub fn scroll_down(&mut self) {
         self.vertical_scroll = self.vertical_scroll.saturating_add(10);
         self.v_preview_scroll_state = self.v_preview_scroll_state.position(self.vertical_scroll);
@@ -179,49 +201,90 @@ impl App {
     pub fn new_file(&mut self, file_name: &str) {
         if !self.new_file_is_dir {
             let full_new_path = PathBuf::from(&self.current_dir).join(file_name);
-            create_file(&full_new_path);
-            self.files = list_files(&self.current_dir,self.show_hidden);
+            match create_file(&full_new_path) {
+                Ok(_) => {}
+                Err(e) => {
+                    self.new_file.clear();
+                    self.new_file_is_dir = false;
+                    self.error_message = Some(e.to_string());
+                    self.current_screen = CurrentScreen::ErrorPopUp;
+                    return;
+                }
+            };
+            self.files = list_files(&self.current_dir, self.show_hidden);
             self.index_selected = Some(0);
             self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
             self.current_screen = CurrentScreen::Main;
             self.new_file.clear();
+            self.new_file_is_dir = false;
         } else {
             let full_new_path = PathBuf::from(&self.current_dir).join(file_name);
-            make_dir(&full_new_path);
-            self.files = list_files(&self.current_dir,self.show_hidden);
+            match make_dir(&full_new_path) {
+                Ok(_) => {}
+                Err(e) => {
+                    self.new_file.clear();
+                    self.new_file_is_dir = false;
+                    self.error_message = Some(e.to_string());
+                    self.current_screen = CurrentScreen::ErrorPopUp;
+                    return;
+                }
+            };
+            self.files = list_files(&self.current_dir, self.show_hidden);
             self.index_selected = Some(0);
             self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
             self.current_screen = CurrentScreen::Main;
             self.new_file.clear();
+            self.new_file_is_dir = false;
         }
-
     }
 
     pub fn rm(&mut self) {
         let file = self.selected_file.as_ref().unwrap();
         if file.is_dir {
-            delete_dir(&PathBuf::from(file.full_path.clone()));
+            match delete_dir(&PathBuf::from(file.full_path.clone())) {
+                Ok(_) => {}
+                Err(e) => {
+                    self.error_message = Some(e.to_string());
+                    self.current_screen = CurrentScreen::ErrorPopUp;
+                    return;
+                }
+            }
         } else {
-            delete_file(&PathBuf::from(file.full_path.clone()));
+            match delete_file(&PathBuf::from(file.full_path.clone())) {
+                Ok(_) => {}
+                Err(e) => {
+                    self.error_message = Some(e.to_string());
+                    self.current_screen = CurrentScreen::ErrorPopUp;
+                    return;
+                }
+            }
         }
-        self.files = list_files(&self.current_dir,self.show_hidden);
+        self.files = list_files(&self.current_dir, self.show_hidden);
         self.index_selected = Some(0);
         self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
         self.current_screen = CurrentScreen::Main;
     }
 
     pub fn rename(&mut self, new_name: &str) {
-        if self.selected_file.is_some(){
-            let file = self.selected_file.clone().unwrap();
-            let old_path=PathBuf::from(&file.full_path);
-            let parent_dir=PathBuf::from(&self.current_dir);
-            let new_path = parent_dir.join(new_name);
-            rename_file(&old_path, &new_path);
-            self.files = list_files(&self.current_dir,self.show_hidden);
-            self.index_selected = Some(0);
-            self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-            self.current_screen = CurrentScreen::Main;
+        match self.selected_file.clone() {
+            Some(file) => {
+                let old_path = PathBuf::from(&file.full_path);
+                let parent_dir = PathBuf::from(&self.current_dir);
+                let new_path = parent_dir.join(new_name);
+                match rename_file(&old_path, &new_path) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        self.error_message = Some(e.to_string());
+                        self.current_screen = CurrentScreen::ErrorPopUp;
+                        return;
+                    }
+                }
+                self.files = list_files(&self.current_dir, self.show_hidden);
+                self.index_selected = Some(0);
+                self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+                self.current_screen = CurrentScreen::Main;
+            }
+            _ => {}
         }
     }
-
 }
