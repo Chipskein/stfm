@@ -13,10 +13,14 @@
    * [x] Fix files with wrong Extension
    * [x] Add syslink support
    * [x] Add Error handling
-   * [x] Fix input bug in release(Alacritty does not help render)
+   * [x] Fix input height bug
+   * [ ] Display metadata(size,is_dir,modified_at) info in top bar
+   * [ ] Implement search by entry name 
    * [ ] Implement Copy file function
-   * [ ] Implement Move
+   * [ ] Implement Move file function
    * [ ] Add support to non UTF-8 Files at preview (images/binaries)
+   
+
 
 
 
