@@ -5,6 +5,7 @@ use ratatui::widgets::{ListState, ScrollbarState};
 use std::env::current_dir;
 #[derive(Debug)]
 pub enum CurrentScreen {
+    Search,
     Main,
     Preview,
     CreateNewFile,
@@ -36,6 +37,7 @@ pub struct App {
     pub new_file_is_dir: bool, // if the new file is a directory
     pub error_message: Option<String>,
     pub show_hidden: bool, // if hidden files should be shown
+    pub search_input: String,
 }
 
 impl App {
@@ -58,6 +60,7 @@ impl App {
             new_file_is_dir: false,
             show_hidden: true,
             error_message: None,
+            search_input: String::new(),
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -67,10 +70,7 @@ impl App {
 
     pub fn toggle_hidden(&mut self) {
         self.show_hidden = !self.show_hidden;
-        self.files = list_files(&self.current_dir, self.show_hidden);
-        self.list_state.select(Some(0));
-        self.index_selected = Some(0);
-        self.selected_file = self.files.get(0).cloned();
+        self.reset();
     }
 
     pub fn cd(&mut self, dir_name: String) {
@@ -85,10 +85,7 @@ impl App {
             }
         };
         self.current_dir = new_path;
-        self.files = list_files(&self.current_dir, self.show_hidden);
-        self.list_state.select(Some(0));
-        self.index_selected = Some(0);
-        self.selected_file = self.files.get(0).cloned();
+        self.reset();            
     }
 
     pub fn down(&mut self) {
@@ -171,11 +168,7 @@ impl App {
 
     pub fn previus_dir(&mut self) {
         self.current_dir.pop();
-        self.files = list_files(&self.current_dir, self.show_hidden);
-        self.index_selected = Some(0);
-        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-        self.list_state.select_first();
-        self.current_screen = CurrentScreen::Main;
+        self.reset();
     }
 
     pub fn scroll_up(&mut self) {
@@ -229,12 +222,7 @@ impl App {
                     return;
                 }
             };
-            self.files = list_files(&self.current_dir, self.show_hidden);
-            self.index_selected = Some(0);
-            self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-            self.current_screen = CurrentScreen::Main;
-            self.new_file.clear();
-            self.new_file_is_dir = false;
+            self.reset();
         }
     }
 
@@ -259,10 +247,7 @@ impl App {
                 }
             }
         }
-        self.files = list_files(&self.current_dir, self.show_hidden);
-        self.index_selected = Some(0);
-        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-        self.current_screen = CurrentScreen::Main;
+        self.reset();
     }
 
     pub fn rename(&mut self, new_name: &str) {
@@ -279,12 +264,40 @@ impl App {
                         return;
                     }
                 }
-                self.files = list_files(&self.current_dir, self.show_hidden);
-                self.index_selected = Some(0);
-                self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
-                self.current_screen = CurrentScreen::Main;
+                self.reset();
             }
             _ => {}
         }
     }
+
+    pub fn search(&mut self) {
+        let query = self.search_input.clone();
+        let mut new_files = Vec::new();
+        let files= list_files(&self.current_dir, self.show_hidden);
+        for file in files.iter() {
+            if file.name.contains(&query) {
+                new_files.push(file.clone());
+            }
+        }
+        self.files = new_files;
+        self.list_state.select_first();
+        self.index_selected = Some(0);
+        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+    }
+
+    pub fn reset(&mut self) {
+        self.search_input.clear();
+        self.files = list_files(&self.current_dir, self.show_hidden);
+        self.list_state.select_first();
+        self.index_selected = Some(0);
+        self.selected_file = self.files.get(self.index_selected.unwrap_or(0)).cloned();
+        self.new_file.clear();
+        self.new_file_is_dir = false;
+        self.error_message = None;
+        self.vertical_scroll = 0;
+        self.horizontal_scroll = 0;
+        self.preview_string.clear();
+        self.current_screen = CurrentScreen::Main;
+    }
+
 }

@@ -83,6 +83,11 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         }
                     }
 
+                    KeyCode::Char('/') => {
+                        app.search_input.clear();
+                        app.current_screen = CurrentScreen::Search;
+                    }
+
                     KeyCode::Char('.') => {
                         app.toggle_hidden();
                     }
@@ -111,6 +116,32 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     }
 
                     _ => {}
+                },
+                CurrentScreen::Search => match key.code {
+                    KeyCode::Esc => {
+                        app.reset();
+                    }
+                    KeyCode::Backspace => {
+                        app.search_input.pop();
+                        app.search();
+                    }
+                    KeyCode::Enter => {
+                        app.search();
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                    KeyCode::Delete => {
+                        app.search_input.clear();
+                        app.search();
+                    }
+                    _ => match key.code.to_string().chars().last() {
+                        Some(c) => {
+                            if c.is_alphanumeric() || c == '.' {
+                                app.search_input.push(c);
+                                app.search();
+                            }
+                        }
+                        _ => {}
+                    },
                 },
                 CurrentScreen::Preview => match key.code {
                     KeyCode::Char('q') | KeyCode::Esc => {

@@ -17,50 +17,69 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         .constraints([Constraint::Percentage(10), Constraint::Percentage(90)])
         .split(frame.area());
 
-    let chunk_top = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-        .split(chunks[0]);
-
-    let title_block = Block::default()
-        .borders(Borders::ALL)
-        .style(Style::default());
-    let title = Paragraph::new(Text::styled(
-        app.current_dir.to_string_lossy(),
-        Style::default().fg(Color::Cyan),
-    ))
-    .block(title_block);
-    frame.render_widget(title, chunk_top[0]);
-
-    let mut file_text=format!("Name:{}\nSize(bytes):{} Type:{}\nLast modified:{}",' ', ' ', ' ', ' ');
-    if let Some(file) = app.selected_file.clone() {
-        file_text = format!(
-            "Name:{}\nSize(b):{} Type:{}\nLast modified:{}",
-            file.name, file.size, file.type_name, file.modified
-        );
-    }
-    let file_info_block = Block::default()
-        .borders(Borders::ALL)
-        .style(Style::default());
-    let file_info_text = Paragraph::new(Text::styled(
-        file_text,
-        Style::default(),
-    ))
-    .block(file_info_block);
-    frame.render_widget(file_info_text, chunk_top[1]);
-
-
-    
-    
     match app.current_screen {
-        CurrentScreen::Main => {
+        CurrentScreen::Main | CurrentScreen::Preview => {
+            let chunk_top = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(chunks[0]);
+
+            let title_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default());
+            
+            let mut title_str=app.current_dir.to_string_lossy().to_string();
+            if !app.search_input.is_empty(){
+                title_str=format!("{}\nSearch:{}",app.current_dir.to_string_lossy(),app.search_input);
+            }
+
+            let title = Paragraph::new(Text::styled(
+                title_str,
+                Style::default().fg(Color::Cyan),
+            ))
+            .block(title_block);
+            frame.render_widget(title, chunk_top[0]);
+
+            let mut file_text = format!(
+                "Name:{}\nSize(bytes):{} Type:{}\nLast modified:{}",
+                ' ', ' ', ' ', ' '
+            );
+            if let Some(file) = app.selected_file.clone() {
+                file_text = format!(
+                    "Name:{}\nSize(b):{} Type:{}\nLast modified:{}",
+                    file.name, file.size, file.type_name, file.modified
+                );
+            }
+            let file_info_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let file_info_text =
+                Paragraph::new(Text::styled(file_text, Style::default())).block(file_info_block);
+            frame.render_widget(file_info_text, chunk_top[1]);
+        }
+        CurrentScreen::Search => {
+            let search_block = Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let search = Paragraph::new(Text::styled(
+                app.search_input.clone(),
+                Style::default().fg(Color::Yellow),
+            ))
+            .block(search_block);
+            frame.render_widget(search, chunks[0]);
+        }
+        _ => {}
+    }
+
+    match app.current_screen {
+        CurrentScreen::Main | CurrentScreen::Search=> {
             let list_block = Block::default()
                 .borders(Borders::ALL)
                 .style(Style::default());
             let mut list_items = Vec::<ListItem>::new();
 
             app.files.iter().for_each(|file| {
-                let mut style =Style::default().fg(Color::Green);
+                let mut style = Style::default().fg(Color::Green);
                 if file.is_dir {
                     style = Style::default().fg(Color::Cyan);
                 }
@@ -88,7 +107,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .style(Style::default());
             let mut list_items = Vec::<ListItem>::new();
             app.files.iter().for_each(|file| {
-                let mut style =Style::default().fg(Color::Green);
+                let mut style = Style::default().fg(Color::Green);
                 if file.is_dir {
                     style = Style::default().fg(Color::Cyan);
                 }
@@ -127,13 +146,15 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         }
         _ => {}
     }
+    
     match app.current_screen {
-
         CurrentScreen::IsNewFileADir => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
             let title_pop_up = format!("Create new entry",);
-            let text = format!("For a new file press 'f'\nFor a new directory press 'd' \nAny other key to cancel");
+            let text = format!(
+                "For a new file press 'f'\nFor a new directory press 'd' \nAny other key to cancel"
+            );
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
@@ -167,11 +188,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             let input_block = Block::default()
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let input = Paragraph::new(Text::styled(
-                app.new_file.clone(),
-                Style::default(),
-            ))
-            .block(input_block);
+            let input = Paragraph::new(Text::styled(app.new_file.clone(), Style::default()))
+                .block(input_block);
             frame.render_widget(input, chunks_pop_up[1]);
         }
 
@@ -182,13 +200,13 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 Some(file) => file,
                 None => {
                     app.current_screen = CurrentScreen::Main;
-                    return
+                    return;
                 }
             };
-            let mut title_pop_up = format!("Delete file {}",file.full_path);
+            let mut title_pop_up = format!("Delete file {}", file.full_path);
             let mut text = format!("Are you sure you want to delete this file? [y/n]");
             if file.is_dir {
-                title_pop_up = format!("Delete directory {}",file.full_path);
+                title_pop_up = format!("Delete directory {}", file.full_path);
                 text=format!("Are you sure you want to delete this directory?\nAll files inside will be deleted [y/n]");
             }
             let popup_block = Block::default()
@@ -209,7 +227,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 Some(file) => file,
                 None => {
                     app.current_screen = CurrentScreen::Main;
-                    return
+                    return;
                 }
             };
             let chunks_pop_up = Layout::default()
@@ -217,7 +235,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
                 .split(area);
             let popup_block = Block::default()
-                .title(format!("Rename Entry {}",file.full_path))
+                .title(format!("Rename Entry {}", file.full_path))
                 .borders(Borders::ALL)
                 .style(Style::default());
             let desc_text = Text::styled(
@@ -232,20 +250,17 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             let input_block = Block::default()
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let input = Paragraph::new(Text::styled(
-                app.new_file.clone(),
-                Style::default(),
-            ))
-            .block(input_block);
+            let input = Paragraph::new(Text::styled(app.new_file.clone(), Style::default()))
+                .block(input_block);
             frame.render_widget(input, chunks_pop_up[1]);
         }
 
-        CurrentScreen::ErrorPopUp =>{
+        CurrentScreen::ErrorPopUp => {
             let msg = app.error_message.clone().unwrap_or(String::new());
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
             let title_pop_up = format!("Error",);
-            let text = format!("The following error occured :{}",msg);
+            let text = format!("The following error occured :{}", msg);
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
@@ -257,12 +272,12 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(desc_paragraph, area);
         }
 
-        CurrentScreen::Help =>{
+        CurrentScreen::Help => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(60, 50, frame.area());
             let title_pop_up = format!("Help");
             let text = format!(
-            r#"
+                r#"
                 Welcome and thank you for using STFM! :3
                 This is a simple file manager that allows you to navigate through your files and directories
                 You can navigate through the files using the arrow keys
@@ -279,7 +294,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 You can scroll down by pressing 'PageDown'
                 You can scroll up by pressing 'PageUp'
                 You can exit the application by pressing 'q' or 'Esc'
-            "#);
+            "#
+            );
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)

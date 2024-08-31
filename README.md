@@ -15,7 +15,7 @@
    * [x] Add Error handling
    * [x] Fix input height bug
    * [x] Display metadata(size,is_dir,modified_at) info in top bar
-   * [ ] Implement search by entry name 
+   * [x] Implement search by entry name 
    * [ ] Implement Copy file function
    * [ ] Implement Move file function
    * [ ] Add support to non UTF-8 Files at preview (images/binaries)
