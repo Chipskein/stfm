@@ -171,13 +171,13 @@ impl App {
         self.reset();
     }
 
-    pub fn scroll_up(&mut self) {
-        self.vertical_scroll = self.vertical_scroll.saturating_sub(10);
+    pub fn scroll_up(&mut self,position: usize) {
+        self.vertical_scroll = self.vertical_scroll.saturating_sub(position);
         self.v_preview_scroll_state = self.v_preview_scroll_state.position(self.vertical_scroll);
     }
 
-    pub fn scroll_down(&mut self) {
-        self.vertical_scroll = self.vertical_scroll.saturating_add(10);
+    pub fn scroll_down(&mut self,position: usize) {
+        self.vertical_scroll = self.vertical_scroll.saturating_add(position);
         self.v_preview_scroll_state = self.v_preview_scroll_state.position(self.vertical_scroll);
     }
 

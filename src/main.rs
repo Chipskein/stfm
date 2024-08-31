@@ -149,12 +149,22 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     }
                     
                     KeyCode::Down => {
-                        app.scroll_down();
+                        app.scroll_down(10);
+                    }
+
+                    KeyCode::PageDown => {
+                        app.scroll_down(50);
                     }
                     
                     KeyCode::Up => {
-                        app.scroll_up();
+                        app.scroll_up(10);
                     }
+
+                    KeyCode::PageUp => {
+                        app.scroll_up(50);
+                    }
+
+
                     
                     KeyCode::Left => {
                         app.scroll_left();
