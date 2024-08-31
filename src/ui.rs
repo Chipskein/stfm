@@ -130,7 +130,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             let area = centered_rect(45, 25, frame.area());
             let chunks_pop_up = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
+                .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
                 .split(area);
             let popup_block = Block::default()
                 .title("Create a new entry")
@@ -186,7 +186,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             let area = centered_rect(45, 25, frame.area());
             let chunks_pop_up = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
+                .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
                 .split(area);
             let popup_block = Block::default()
                 .title(format!(
