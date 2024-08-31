@@ -16,6 +16,12 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         .direction(Direction::Vertical)
         .constraints([Constraint::Percentage(10), Constraint::Percentage(90)])
         .split(frame.area());
+
+    let chunk_top = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(chunks[0]);
+
     let title_block = Block::default()
         .borders(Borders::ALL)
         .style(Style::default());
@@ -24,8 +30,28 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         Style::default().fg(Color::Cyan),
     ))
     .block(title_block);
-    frame.render_widget(title, chunks[0]);
+    frame.render_widget(title, chunk_top[0]);
 
+    let mut file_text=format!("Name:{}\nSize(bytes):{} Type:{}\nLast modified:{}",' ', ' ', ' ', ' ');
+    if let Some(file) = app.selected_file.clone() {
+        file_text = format!(
+            "Name:{}\nSize(b):{} Type:{}\nLast modified:{}",
+            file.name, file.size, file.type_name, file.modified
+        );
+    }
+    let file_info_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default());
+    let file_info_text = Paragraph::new(Text::styled(
+        file_text,
+        Style::default(),
+    ))
+    .block(file_info_block);
+    frame.render_widget(file_info_text, chunk_top[1]);
+
+
+    
+    
     match app.current_screen {
         CurrentScreen::Main => {
             let list_block = Block::default()

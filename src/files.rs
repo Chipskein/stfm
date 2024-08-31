@@ -1,5 +1,8 @@
 use std::io::{Error, Read};
-use std::path::{PathBuf,Path};
+use std::path::{Path, PathBuf};
+extern crate chrono;
+use chrono::offset::Utc;
+use chrono::DateTime;
 
 #[derive(Debug, Clone)]
 pub struct StfmFile {
@@ -7,6 +10,9 @@ pub struct StfmFile {
     pub name: String,
     pub extension: String,
     pub is_dir: bool,
+    pub type_name: String,
+    pub size: u64,
+    pub modified: String,
 }
 
 #[cfg(windows)]
@@ -16,7 +22,8 @@ pub fn is_hidden<P: AsRef<Path>>(path: P) -> std::io::Result<bool> {
     // Unix-like systems: Check if the file name starts with a dot
     #[cfg(unix)]
     {
-        Ok(path.file_name()
+        Ok(path
+            .file_name()
             .and_then(|name| name.to_str())
             .map_or(false, |name| name.starts_with('.')))
     }
@@ -42,19 +49,21 @@ pub fn list_files(current_dir: &PathBuf, show_hidden: bool) -> Vec<StfmFile> {
                         if !show_hidden && is_hidden(&path).unwrap() {
                             continue;
                         }
-                        let filename= match  path.file_name() {
+                        let filename = match path.file_name() {
                             Some(name) => name.to_string_lossy().to_string(),
-                            None => "UNKNOWN".to_string()
+                            None => "UNKNOWN".to_string(),
                         };
-                        let metadata = match  entry.metadata() {
-                            Ok(meta) => {meta}
-                            Err(_) => {continue;}
+                        let metadata = match entry.metadata() {
+                            Ok(meta) => meta,
+                            Err(_) => {
+                                continue;
+                            }
                         };
-                        let ext= match path.extension() {
+                        let ext = match path.extension() {
                             Some(ext) => {
                                 if !metadata.is_dir() {
                                     ext.to_string_lossy().to_string()
-                                } else{
+                                } else {
                                     "DIR".to_string()
                                 }
                             }
@@ -75,6 +84,21 @@ pub fn list_files(current_dir: &PathBuf, show_hidden: bool) -> Vec<StfmFile> {
                             name: filename,
                             extension: ext,
                             is_dir: metadata.is_dir(),
+                            type_name: match metadata.file_type().is_symlink() {
+                                true => "Link".to_string(),
+                                false => match metadata.is_dir() {
+                                    true => "Directory".to_string(),
+                                    false => "File".to_string(),
+                                },
+                            },
+                            size: metadata.len(),
+                            modified: match metadata.modified() {
+                                Ok(time) => {
+                                    let datetime: DateTime<Utc> = time.into();
+                                    datetime.format("%Y-%m-%d %H:%M:%S").to_string()
+                                }
+                                Err(_) => "Unknown".to_string(),
+                            },
                         };
                         files.push(file);
                     }
@@ -90,94 +114,63 @@ pub fn list_files(current_dir: &PathBuf, show_hidden: bool) -> Vec<StfmFile> {
 }
 
 /// Create a file
-pub fn create_file(file_path: &PathBuf)-> Result<bool, Error> {
-    match std::fs::File::create(file_path){
-        Ok(_) => {
-            Ok(true)
-        }
-        Err(e) => {
-            Err(e)
-        }
+pub fn create_file(file_path: &PathBuf) -> Result<bool, Error> {
+    match std::fs::File::create(file_path) {
+        Ok(_) => Ok(true),
+        Err(e) => Err(e),
     }
 }
 
 /// Delete a file
-pub fn delete_file(file_name: &PathBuf)-> Result<bool, Error> {
-    match std::fs::remove_file(file_name){
-        Ok(_) => {
-            Ok(true)
-        }
-        Err(e) => {
-            Err(e)
-        }
+pub fn delete_file(file_name: &PathBuf) -> Result<bool, Error> {
+    match std::fs::remove_file(file_name) {
+        Ok(_) => Ok(true),
+        Err(e) => Err(e),
     }
-
 }
 
 /// Read a file
-pub fn read_file(file_name: &str) -> Result<String,Error> {
+pub fn read_file(file_name: &str) -> Result<String, Error> {
     match std::fs::File::open(file_name) {
         Ok(mut file) => {
             let mut contents = String::new();
             match file.read_to_string(&mut contents) {
-                Ok(_) => {
-                    Ok(contents)
-                }
-                Err(e) => {
-                    Err(e)
-                }
+                Ok(_) => Ok(contents),
+                Err(e) => Err(e),
             }
         }
-        Err(e) => {
-            Err(e)
-        }
+        Err(e) => Err(e),
     }
 }
 
 /// Change the current directory
-pub fn change_dir(dir_name: &PathBuf)-> Result<bool, Error> {
+pub fn change_dir(dir_name: &PathBuf) -> Result<bool, Error> {
     match std::env::set_current_dir(dir_name) {
-        Ok(_) => {
-            Ok(true)
-        }
-        Err(e) => {
-            Err(e)
-        }
+        Ok(_) => Ok(true),
+        Err(e) => Err(e),
     }
 }
 
 /// Make a directory
-pub fn make_dir(dir_name: &PathBuf)-> Result<bool, Error> {
-    match std::fs::create_dir(dir_name){
-        Ok(_) => {
-            Ok(true)
-        }
-        Err(e) => {
-            Err(e)
-        }
+pub fn make_dir(dir_name: &PathBuf) -> Result<bool, Error> {
+    match std::fs::create_dir(dir_name) {
+        Ok(_) => Ok(true),
+        Err(e) => Err(e),
     }
 }
 
 /// Delete a directory
-pub fn delete_dir(dir_name: &PathBuf)-> Result<bool, Error> {
-    match std::fs::remove_dir_all(dir_name){
-        Ok(_) => {
-            Ok(true)
-        }
-        Err(e) => {
-            Err(e)
-        }
+pub fn delete_dir(dir_name: &PathBuf) -> Result<bool, Error> {
+    match std::fs::remove_dir_all(dir_name) {
+        Ok(_) => Ok(true),
+        Err(e) => Err(e),
     }
 }
 
 /// Rename a file
-pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf)-> Result<bool, Error> {
-    match std::fs::rename(old_name, new_name){
-        Ok(_) => {
-            Ok(true)
-        }
-        Err(e) => {
-            Err(e)
-        }
+pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf) -> Result<bool, Error> {
+    match std::fs::rename(old_name, new_name) {
+        Ok(_) => Ok(true),
+        Err(e) => Err(e),
     }
 }

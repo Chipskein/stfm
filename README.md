@@ -14,7 +14,7 @@
    * [x] Add syslink support
    * [x] Add Error handling
    * [x] Fix input height bug
-   * [ ] Display metadata(size,is_dir,modified_at) info in top bar
+   * [x] Display metadata(size,is_dir,modified_at) info in top bar
    * [ ] Implement search by entry name 
    * [ ] Implement Copy file function
    * [ ] Implement Move file function
