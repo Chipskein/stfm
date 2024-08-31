@@ -274,28 +274,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
         CurrentScreen::Help => {
             frame.render_widget(Clear, frame.area());
-            let area = centered_rect(60, 50, frame.area());
+            let area = centered_rect(60, 60, frame.area());
             let title_pop_up = format!("Help");
-            let text = format!(
-                r#"
-                Welcome and thank you for using STFM! :3
-                This is a simple file manager that allows you to navigate through your files and directories
-                You can navigate through the files using the arrow keys
-                You can open a file or directory by pressing 'Enter' or 'Right Arrow'
-                You can go back to the previous directory by pressing 'Backspace' or 'Left' key
-                You can see a preview of the file by selecting it
-                With preview open you can scroll down by pressing 'Down' and scroll up by pressing 'Up'
-                With preview open you can scroll right by pressing 'Right' and scroll left by pressing 'Left'
-                With preview open you can go back to the main screen by pressing 'q' or 'Esc'
-                You can create a new file/dir by pressing 'n'
-                You can delete a file/dir by pressing 'd'
-                You can rename a file/dir by pressing 'r'
-                You can toggle hidden files by pressing '.'
-                You can scroll down by pressing 'PageDown'
-                You can scroll up by pressing 'PageUp'
-                You can exit the application by pressing 'q' or 'Esc'
-            "#
-            );
+            let text = format!(" Welcome and thank you for using STFM! :3\n This is a simple file manager that allows you to navigate through your files and directories\n You can navigate through the files using the arrow keys\n You can open a file or directory by pressing 'Enter' or 'Right Arrow'\n You can go back to the previous directory by pressing 'Backspace' or 'Left' key\n You can see a preview of the file by selecting it\n With preview open you can scroll down by pressing 'Down' and scroll up by pressing 'Up'\n With preview open you can scroll right by pressing 'Right' and scroll left by pressing 'Left'\n With preview open you can go back to the main screen by pressing 'q' or 'Esc'\n You can search for a file or directory by pressing '/' and typing the name of the file\n With search open you can go back to the main screen by pressing 'Esc'\n With search on press enter to show filtered files\n You can create a new file/dir by pressing 'n'\n You can delete a file/dir by pressing 'd'\n You can rename a file/dir by pressing 'r'\n You can toggle hidden files by pressing '.'\n You can scroll down by pressing 'PageDown'\n You can scroll up by pressing 'PageUp'\n You can exit the application by pressing 'q' or 'Esc'");
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
@@ -309,6 +290,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
         _ => {}
     }
+
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
