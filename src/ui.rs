@@ -1,21 +1,15 @@
-#![allow(unused)]
 use ratatui::{
-    crossterm::ExecutableCommand,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
-    symbols::block,
-    text::{Line, Span, Text},
+    text::{Span, Text},
     widgets::{
-        Block, Borders, Clear, List, ListDirection, ListItem, ListState, Paragraph, Scrollbar,
+        Block, Borders, Clear, List, ListDirection, ListItem, Paragraph, Scrollbar,
         ScrollbarOrientation, Wrap,
     },
     Frame,
 };
 
-use crate::{
-    app::{App, CurrentScreen},
-    files::StfmFile,
-};
+use crate::app::{App, CurrentScreen};
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     let chunks = Layout::default()
@@ -112,8 +106,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         CurrentScreen::IsNewFileADir => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
-            let mut title_pop_up = format!("Create new Entry",);
-            let mut text = format!("Do you want to create a directory [y/n]");
+            let title_pop_up = format!("Create new entry",);
+            let text = format!("For a new file press 'f'\nFor a new directory press 'd' \nAny other key to cancel");
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
@@ -137,7 +131,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 .borders(Borders::ALL)
                 .style(Style::default());
             let desc_text = Text::styled(
-                " Write Down the name of the new entry then press 'Enter' to create it or 'Esc' to cancel",
+                "Write down the name of the new entry then press 'Enter' to create it or 'Esc' to cancel",
                 Style::default(),
             );
             let desc_paragraph = Paragraph::new(desc_text)
@@ -158,23 +152,24 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         CurrentScreen::ConfirmDelete => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
-            let mut title_pop_up = format!(
-                "Delete file {}",
-                app.selected_file.as_ref().unwrap().full_path
-            );
-            let mut text = format!(" Are you sure you want to delete this file? [y/n]");
-            if app.selected_file.as_ref().unwrap().is_dir {
-                title_pop_up = format!(
-                    "Delete directory {}",
-                    app.selected_file.as_ref().unwrap().full_path
-                );
-                text=format!(" Are you sure you want to delete this directory? All files inside will be deleted[y/n]");
+            let file = match app.selected_file.clone() {
+                Some(file) => file,
+                None => {
+                    app.current_screen = CurrentScreen::Main;
+                    return
+                }
+            };
+            let mut title_pop_up = format!("Delete file {}",file.full_path);
+            let mut text = format!("Are you sure you want to delete this file? [y/n]");
+            if file.is_dir {
+                title_pop_up = format!("Delete directory {}",file.full_path);
+                text=format!("Are you sure you want to delete this directory?\nAll files inside will be deleted [y/n]");
             }
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
                 .style(Style::default());
-            let desc_text = Text::styled(text, Style::default().fg(Color::Yellow));
+            let desc_text = Text::styled(text, Style::default());
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
                 .wrap(Wrap { trim: false });
@@ -184,20 +179,24 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         CurrentScreen::Rename => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(45, 25, frame.area());
+            let file = match app.selected_file.clone() {
+                Some(file) => file,
+                None => {
+                    app.current_screen = CurrentScreen::Main;
+                    return
+                }
+            };
             let chunks_pop_up = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
                 .split(area);
             let popup_block = Block::default()
-                .title(format!(
-                    "Rename Entry {}",
-                    app.selected_file.as_ref().unwrap().full_path
-                ))
+                .title(format!("Rename Entry {}",file.full_path))
                 .borders(Borders::ALL)
                 .style(Style::default());
             let desc_text = Text::styled(
                 " Write Down the name of the new entry then press 'Enter' to change it or 'Esc' to cancel",
-                Style::default().fg(Color::Yellow),
+                Style::default(),
             );
             let desc_paragraph = Paragraph::new(desc_text)
                 .block(popup_block)
@@ -219,8 +218,8 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             let msg = app.error_message.clone().unwrap_or(String::new());
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
-            let mut title_pop_up = format!("Error",);
-            let mut text = format!("The following error occured :{}",msg);
+            let title_pop_up = format!("Error",);
+            let text = format!("The following error occured :{}",msg);
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
@@ -233,11 +232,28 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         }
 
         CurrentScreen::Help =>{
-            let msg = app.error_message.clone().unwrap_or(String::new());
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(60, 50, frame.area());
-            let mut title_pop_up = format!("Help");
-            let mut text = format!("Welcome to Simple Terminal File Manager\nThis is a simple file manager that allows you to navigate through your files and directories\nYou can navigate through the files using the arrow keys\nYou can open a file or directory by pressing 'Enter' or 'Right Arrow'\nYou can go back to the previous directory by pressing 'Backspace' or 'Left' key\nYou can see a preview of the file by selecting it\nWith preview open you can scroll down by pressing 'Down' and scroll up by pressing 'Up'\nWith preview open you can scroll right by pressing 'Right' and scroll left by pressing 'Left'\nWith preview open you can go back to the main screen by pressing 'q' or 'Esc'\nYou can create a new file/dir by pressing 'n'\nYou can delete a file/dir by pressing 'd'\nYou can rename a file/dir by pressing 'r'\nYou can toggle hidden files by pressing '.'\nYou can scroll down by pressing 'PageDown'\nYou can scroll up by pressing 'PageUp'\nYou can exit the application by pressing 'q' or 'Esc'\n");
+            let title_pop_up = format!("Help");
+            let text = format!(
+            r#"
+                Welcome and thank you for using STFM! :3
+                This is a simple file manager that allows you to navigate through your files and directories
+                You can navigate through the files using the arrow keys
+                You can open a file or directory by pressing 'Enter' or 'Right Arrow'
+                You can go back to the previous directory by pressing 'Backspace' or 'Left' key
+                You can see a preview of the file by selecting it
+                With preview open you can scroll down by pressing 'Down' and scroll up by pressing 'Up'
+                With preview open you can scroll right by pressing 'Right' and scroll left by pressing 'Left'
+                With preview open you can go back to the main screen by pressing 'q' or 'Esc'
+                You can create a new file/dir by pressing 'n'
+                You can delete a file/dir by pressing 'd'
+                You can rename a file/dir by pressing 'r'
+                You can toggle hidden files by pressing '.'
+                You can scroll down by pressing 'PageDown'
+                You can scroll up by pressing 'PageUp'
+                You can exit the application by pressing 'q' or 'Esc'
+            "#);
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)

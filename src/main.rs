@@ -136,12 +136,12 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     _ => {}
                 },
                 CurrentScreen::IsNewFileADir => match key.code {
-                    KeyCode::Char('y') => {
+                    KeyCode::Char('d') => {
                         app.new_file_is_dir = true;
                         app.current_screen = CurrentScreen::CreateNewFile;
                     }
 
-                    KeyCode::Char('n') => {
+                    KeyCode::Char('f') => {
                         app.new_file_is_dir = false;
                         app.current_screen = CurrentScreen::CreateNewFile;
                     }
