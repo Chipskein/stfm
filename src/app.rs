@@ -3,6 +3,10 @@ use crate::files::*;
 use ::std::path::PathBuf;
 use ratatui::widgets::{ListState, ScrollbarState};
 use std::env::current_dir;
+
+
+
+
 #[derive(Debug)]
 pub enum CurrentScreen {
     Search,
@@ -14,6 +18,8 @@ pub enum CurrentScreen {
     Rename,
     ErrorPopUp,
     Help,
+    ConfirmCopyingPopUp,
+    CopyingProgressBar,
 }
 #[derive(Debug)]
 pub struct App {
@@ -38,6 +44,10 @@ pub struct App {
     pub error_message: Option<String>,
     pub show_hidden: bool, // if hidden files should be shown
     pub search_input: String,
+    
+    pub file_to_copy: Option<StfmFile>, // the file to be copied
+    pub readed_bytes: u64
+
 }
 
 impl App {
@@ -61,6 +71,8 @@ impl App {
             show_hidden: true,
             error_message: None,
             search_input: String::new(),
+            file_to_copy: None,
+            readed_bytes:0,
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -298,6 +310,32 @@ impl App {
         self.horizontal_scroll = 0;
         self.preview_string.clear();
         self.current_screen = CurrentScreen::Main;
+    }
+
+    pub fn copy(&mut self){
+        match self.file_to_copy.clone() {
+            Some(file) => {
+                if file.is_dir {
+                    self.error_message = Some("Cannot copy directories".to_string());
+                    self.current_screen = CurrentScreen::ErrorPopUp;
+                    return;
+                }
+                let to= self.current_dir.clone().join(file.name.clone());
+                let from = PathBuf::from(&file.full_path);
+                self.readed_bytes=0;
+                match copy_file(&from,&to,&mut self.readed_bytes){
+                    Ok(_)=>{}
+                    Err(e)=>{
+                        self.error_message = Some(e.to_string());
+                        self.current_screen = CurrentScreen::ErrorPopUp;
+                        return;
+                    }
+                }
+
+            }
+            None => {}
+        }
+
     }
 
 }

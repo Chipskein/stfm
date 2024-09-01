@@ -42,7 +42,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
     loop {
         terminal.draw(|f| ui(f, app))?;
-
         if let Event::Key(key) = event::read()? {
             if key.kind == event::KeyEventKind::Release {
                 continue;
@@ -70,6 +69,28 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             app.error_message = Some("No file selected".to_string());
                             app.current_screen = CurrentScreen::ErrorPopUp;
 
+                        }
+                    }
+                    KeyCode::Char('c') => match app.selected_file.clone() {
+                        Some(file) => {
+                            if file.type_name == "File"{
+                                app.file_to_copy = Some(file);
+                            }
+                        }
+                        None => {
+                            app.error_message = Some("No file selected".to_string());
+                            app.current_screen = CurrentScreen::ErrorPopUp;
+                        }
+
+                    }
+
+                    KeyCode::Char('p') => match app.file_to_copy.clone() {
+                        Some(_) => {
+                            app.current_screen = CurrentScreen::ConfirmCopyingPopUp;
+                        }
+                        None => {
+                            app.error_message = Some("No file selected".to_string());
+                            app.current_screen = CurrentScreen::ErrorPopUp;
                         }
                     }
 
@@ -239,6 +260,26 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                     }
                 }
 
+                CurrentScreen::ConfirmCopyingPopUp => match key.code {
+                    KeyCode::Char('y') => {
+                        app.current_screen = CurrentScreen::CopyingProgressBar;
+                        app.copy();
+                    }
+                    _ => {
+                        app.current_screen = CurrentScreen::Main;
+                    }
+                }
+                
+                CurrentScreen::CopyingProgressBar => match key.code {
+                    KeyCode::Char('q') | KeyCode::Esc => {
+                        app.file_to_copy = None;
+                        app.readed_bytes = 0;
+                        app.reset();
+                    }
+                        
+                    _ => {}
+                }
+                
                 CurrentScreen::Rename => match key.code {
                     KeyCode::Esc => {
                         app.current_screen = CurrentScreen::Main;

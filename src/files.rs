@@ -1,9 +1,10 @@
 use std::io::{Error, Read};
+use std::fs::File;
+use std::io::{self,Write};
 use std::path::{Path, PathBuf};
 extern crate chrono;
 use chrono::offset::Utc;
 use chrono::DateTime;
-
 #[derive(Debug, Clone)]
 pub struct StfmFile {
     pub full_path: String,
@@ -172,5 +173,38 @@ pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf) -> Result<bool, Error
     match std::fs::rename(old_name, new_name) {
         Ok(_) => Ok(true),
         Err(e) => Err(e),
+    }
+}
+/// Copy a file
+pub fn copy_file(from_path:&PathBuf,to_path:&PathBuf,readed_bytes:&mut u64)->io::Result<()> {
+    let mut from_file = match File::open(from_path){
+        Ok(file)=>file,
+        Err(e)=>return Err(e),
+    };
+    let mut to_file = match File::create(to_path){
+        Ok(file)=>file,
+        Err(e)=>return Err(e),
+    };
+    let mut buffer = [0; 1024];
+    let mut total_bytes=0;
+    loop {
+        let bytes_read = match from_file.read(&mut buffer){
+            Ok(n)=>n,
+            Err(e)=>return Err(e),
+        };
+        if bytes_read == 0 {
+            break;
+        }
+        match to_file.write_all(&buffer[..bytes_read]) {
+            Ok(_) => {
+                total_bytes+=bytes_read;
+                *readed_bytes = total_bytes as u64;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+    match to_file.flush(){
+        Ok(_)=>{Ok(())},
+        Err(e)=>return Err(e),
     }
 }

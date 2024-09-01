@@ -1,5 +1,7 @@
 ### Simple Terminal File Manager (STFM)
 #### TODO
+#### MPV
+
    * [x] Implement Basic file functions(create,rm,list)
    * [x] Implement Rename
    * [x] Fix input block in create file e rename
@@ -17,8 +19,8 @@
    * [x] Display metadata(size,is_dir,modified_at) info in top bar
    * [x] Implement search by entry name 
    * [x] Add Scroll PageUp and Down
-   * [ ] Implement Move file function
-   * [ ] Implement Copy file function
+   * [x] Implement Copy file function
+   * [ ] Fix progress bar
    * [ ] Add support to non UTF-8 Files at preview (images/binaries)
    
 

@@ -1,12 +1,7 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
-    text::{Span, Text},
-    widgets::{
-        Block, Borders, Clear, List, ListDirection, ListItem, Paragraph, Scrollbar,
-        ScrollbarOrientation, Wrap,
-    },
-    Frame,
+    layout::{Constraint, Direction, Layout, Rect}, style::{Color, Style}, text::{Span, Text}, widgets::{
+        Block, Borders, Clear, LineGauge, List, ListDirection, ListItem, Paragraph, Scrollbar, ScrollbarOrientation,Wrap
+    }, Frame
 };
 
 use crate::app::{App, CurrentScreen};
@@ -220,6 +215,75 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(desc_paragraph, area);
         }
 
+        CurrentScreen::ConfirmCopyingPopUp => {
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(40, 20, frame.area());
+            let file = match app.file_to_copy.clone() {
+                Some(file) => file,
+                None => {
+                    app.current_screen = CurrentScreen::Main;
+                    return;
+                }
+            };
+            let title_pop_up = format!("Copy file {}", file.full_path);
+            let text = format!("Are you sure you want to copy this file to {}? [y/n]",app.current_dir.clone().join(file.name).to_string_lossy());
+            let popup_block = Block::default()
+                .title(title_pop_up)
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(text, Style::default());
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, area);
+        }
+
+        CurrentScreen::CopyingProgressBar => {
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(50, 25, frame.area());
+            let chunks_pop_up = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
+                .split(area);
+            let file = match app.file_to_copy.clone() {
+                Some(file) => file,
+                None => {
+                    app.reset();
+                    app.current_screen = CurrentScreen::Main;
+                    return;
+                }
+            };
+            let title_pop_up = format!("Copying file");
+            let text = format!("Copying {} to {}",file.full_path,app.current_dir.clone().join(file.name).to_string_lossy());
+            let popup_block = Block::default()
+                .title(title_pop_up)
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(text, Style::default());
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, chunks_pop_up[0]);
+            
+            let line_block = Block::default()
+                .title(format!("Copying {}/{}",app.readed_bytes,file.size))
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let progress_bar=LineGauge::default()
+                .block(line_block)
+                .filled_style(
+                    Style::default()
+                        .fg(Color::Green)
+                        .bg(Color::Green),
+                )
+                .unfilled_style(
+                    Style::default()
+                )
+                .ratio(app.readed_bytes as f64 / file.size as f64);
+            frame.render_widget(progress_bar, chunks_pop_up[1]);
+
+        }
+        
         CurrentScreen::Rename => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(45, 25, frame.area());
