@@ -3,11 +3,12 @@ use crate::files::*;
 use ::std::path::PathBuf;
 use ratatui::widgets::{ListState, ScrollbarState};
 use std::env::current_dir;
+use std::sync::{mpsc,Mutex,Arc};
 
 
 
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum CurrentScreen {
     Search,
     Main,
@@ -46,7 +47,10 @@ pub struct App {
     pub search_input: String,
     
     pub file_to_copy: Option<StfmFile>, // the file to be copied
-    pub readed_bytes: u64
+    pub readed_bytes: u64, // the number of bytes readed in the copy process
+
+    pub progress_sender: Option<mpsc::Sender<u64>>,
+    pub progress_receiver: Option<mpsc::Receiver<u64>>,
 
 }
 
@@ -73,6 +77,8 @@ impl App {
             search_input: String::new(),
             file_to_copy: None,
             readed_bytes:0,
+            progress_sender: None,
+            progress_receiver: None,
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -309,12 +315,18 @@ impl App {
         self.vertical_scroll = 0;
         self.horizontal_scroll = 0;
         self.preview_string.clear();
+        self.progress_sender= None;
+        self.progress_receiver= None;
         self.current_screen = CurrentScreen::Main;
     }
 
     pub fn copy(&mut self){
         match self.file_to_copy.clone() {
             Some(file) => {
+                self.readed_bytes=0;
+                let (progress_sender, progress_receiver) = mpsc::channel();
+                self.progress_sender = Some(progress_sender);
+                self.progress_receiver = Some(progress_receiver);
                 if file.is_dir {
                     self.error_message = Some("Cannot copy directories".to_string());
                     self.current_screen = CurrentScreen::ErrorPopUp;
@@ -322,20 +334,33 @@ impl App {
                 }
                 let to= self.current_dir.clone().join(file.name.clone());
                 let from = PathBuf::from(&file.full_path);
-                self.readed_bytes=0;
-                match copy_file(&from,&to,&mut self.readed_bytes){
-                    Ok(_)=>{}
-                    Err(e)=>{
-                        self.error_message = Some(e.to_string());
-                        self.current_screen = CurrentScreen::ErrorPopUp;
-                        return;
-                    }
-                }
 
+                let error_message: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+                let current_screen: Arc<Mutex<CurrentScreen>> = Arc::new(Mutex::new(self.current_screen.clone()));
+                let error_message_clone = Arc::clone(&error_message);
+                let current_screen_clone = Arc::clone(&current_screen);
+                let progress_sender = match self.progress_sender.clone(){
+                    Some(sender)=>sender,
+                    None=>{return;}
+                };
+                
+                std::thread::spawn(move || {
+                    match copy_file(&from,&to,progress_sender){
+                        Ok(_)=>{return}
+                        Err(e)=>{
+                            *error_message_clone.lock().unwrap() = Some(e.to_string());
+                            *current_screen_clone.lock().unwrap() = CurrentScreen::ErrorPopUp;
+                            return;
+                        }
+                    }
+                    
+                });
+                // After spawning the thread, set the error_message and current_screen fields
+                self.error_message = error_message.lock().unwrap().clone();
+                self.current_screen = current_screen.lock().unwrap().clone();
             }
             None => {}
         }
-
     }
 
 }

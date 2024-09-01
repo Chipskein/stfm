@@ -2,6 +2,7 @@ use std::io::{Error, Read};
 use std::fs::File;
 use std::io::{self,Write};
 use std::path::{Path, PathBuf};
+use std::sync::mpsc;
 extern crate chrono;
 use chrono::offset::Utc;
 use chrono::DateTime;
@@ -176,7 +177,7 @@ pub fn rename_file(old_name: &PathBuf, new_name: &PathBuf) -> Result<bool, Error
     }
 }
 /// Copy a file
-pub fn copy_file(from_path:&PathBuf,to_path:&PathBuf,readed_bytes:&mut u64)->io::Result<()> {
+pub fn copy_file(from_path:&PathBuf,to_path:&PathBuf,progress_sender: mpsc::Sender<u64>)->io::Result<()> {
     let mut from_file = match File::open(from_path){
         Ok(file)=>file,
         Err(e)=>return Err(e),
@@ -185,7 +186,9 @@ pub fn copy_file(from_path:&PathBuf,to_path:&PathBuf,readed_bytes:&mut u64)->io:
         Ok(file)=>file,
         Err(e)=>return Err(e),
     };
-    let mut buffer = [0; 1024];
+    //let mut buffer = [0; 1024];
+    // Set buffer size to 128 KB
+    let mut buffer = [0; 128 * 1024];
     let mut total_bytes=0;
     loop {
         let bytes_read = match from_file.read(&mut buffer){
@@ -198,7 +201,12 @@ pub fn copy_file(from_path:&PathBuf,to_path:&PathBuf,readed_bytes:&mut u64)->io:
         match to_file.write_all(&buffer[..bytes_read]) {
             Ok(_) => {
                 total_bytes+=bytes_read;
-                *readed_bytes = total_bytes as u64;
+                match progress_sender.send(total_bytes as u64){
+                    Ok(_)=>{},
+                    Err(_)=>{
+                        return Err(io::Error::new(io::ErrorKind::Other,"Progress sender failed"));
+                    },
+                }
             }
             Err(e) => return Err(e),
         }

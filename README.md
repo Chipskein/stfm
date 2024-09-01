@@ -20,7 +20,7 @@
    * [x] Implement search by entry name 
    * [x] Add Scroll PageUp and Down
    * [x] Implement Copy file function
-   * [ ] Fix progress bar
+   * [x] Fix progress bar
    * [ ] Add support to non UTF-8 Files at preview (images/binaries)
    
 
