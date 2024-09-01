@@ -20,7 +20,7 @@ https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
   * List file entries in current directory
   * Preview text files
   * Create files/directories in current directory
-  * Remove file
+  * Rename file
   * Search entries by name
   * Copy file
   * Delete file
