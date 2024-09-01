@@ -1,6 +1,6 @@
 ### Simple Terminal File Manager (STFM)
 #### TODO
-#### MPV
+#### MVP
 
    * [x] Implement Basic file functions(create,rm,list)
    * [x] Implement Rename
