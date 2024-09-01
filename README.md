@@ -21,7 +21,6 @@
    * [x] Add Scroll PageUp and Down
    * [x] Implement Copy file function
    * [x] Fix progress bar
-   * [ ] Add support to non UTF-8 Files at preview (images/binaries)
    
 
 
