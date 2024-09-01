@@ -109,6 +109,9 @@ impl App {
     pub fn down(&mut self) {
         match self.index_selected {
             Some(index) => {
+                if self.files.len()==0{
+                    return;
+                }
                 if index == self.files.len() - 1 || index == usize::MAX {
                     self.list_state.select_first();
                     self.index_selected = self.list_state.selected();
@@ -126,6 +129,9 @@ impl App {
     pub fn up(&mut self) {
         match self.index_selected {
             Some(index) => {
+                if self.files.len()==0{
+                    return;
+                }
                 if index == 0 {
                     self.list_state.select_last();
                     self.index_selected = Some(self.files.len() - 1);
