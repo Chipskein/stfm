@@ -1,13 +1,14 @@
+<div align="center">  
+  <img src="https://rustacean.net/assets/rustacean-flat-gesture.svg" alt="logo" style="width:120px"></img>
+</div>
+
 ## Simple Terminal File Manager (STFM)
 
-
 ### Descrption
-STFM is a simple terminal file manager
+STFM is a simple terminal-based file manager that lets you navigate through your file system and perform basic file operations.
 
 ### Demo
-https://github.com/user-attachments/assets/cc8d55c5-45af-442e-9227-50a6b8e22e5b
-
-
+https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
 
 ### Install
     cargo build --release
@@ -60,9 +61,7 @@ https://github.com/user-attachments/assets/cc8d55c5-45af-442e-9227-50a6b8e22e5b
 - **Exit:**
   - Exit the application by pressing **'q'** or **'Esc'**.
 
-
 #### TODO
-##### MVP
    * [x] Implement Basic file functions(create,rm,list)
    * [x] Implement Rename
    * [x] Fix input block in create file e rename
@@ -82,3 +81,8 @@ https://github.com/user-attachments/assets/cc8d55c5-45af-442e-9227-50a6b8e22e5b
    * [x] Add Scroll PageUp and Down
    * [x] Implement Copy file function
    * [x] Fix progress bar
+   
+   * [ ] Add Tabs
+   * [ ] Add support for preview of non-UTF8 files(images,binaries)
+   * [ ] Add support to create syslinks
+
