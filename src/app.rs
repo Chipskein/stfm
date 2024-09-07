@@ -2,12 +2,13 @@
 use crate::files::*;
 use ::std::path::PathBuf;
 use ratatui::widgets::{ListState, ScrollbarState};
-use rdump::dump;
+
 use std::env::current_dir;
 use std::sync::{mpsc,Mutex,Arc};
-
+/*FIXME: performance issue here when reading large files,try to load chunks of the file instead
 extern crate rdump;
-
+use rdump::dump;
+*/
 
 
 #[derive(Debug,Clone)]
@@ -172,15 +173,21 @@ impl App {
                     self.current_screen = CurrentScreen::Preview;
                     self.preview_string = match read_file(&file.full_path) {
                         Ok(content) => content,
-                        Err(_) => {
-                            match dump(PathBuf::from(&file.full_path),true){
-                                Ok(content)=>content,
-                                Err(e)=>{
-                                    self.error_message = Some(e.to_string());
-                                    self.current_screen = CurrentScreen::ErrorPopUp;
-                                    return;
+                        Err(e) => {
+                            /*
+                                FIXME: performance issue here when reading large files,try to load chunks of the file instead
+                                match dump(PathBuf::from(&file.full_path),true){
+                                    Ok(content)=>content,
+                                    Err(e)=>{
+                                        self.error_message = Some(e.to_string());
+                                        self.current_screen = CurrentScreen::ErrorPopUp;
+                                        return;
+                                    }
                                 }
-                            }
+                             */
+                            self.error_message = Some(e.to_string());
+                            self.current_screen = CurrentScreen::ErrorPopUp;
+                            return;
                         }
                     };
                     self.v_preview_scroll_state = self
