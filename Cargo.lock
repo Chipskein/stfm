@@ -402,6 +402,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "rdump"
+version = "0.1.0"
+source = "git+https://github.com/Chipskein/rdump.git#47b245bf3a5008064611264bc0edf8810a37adeb"
+
+[[package]]
 name = "redox_syscall"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -515,6 +520,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "ratatui",
+ "rdump",
 ]
 
 [[package]]

@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.38"
 ratatui = { version = "0.28.0", features = ["all-widgets", "crossterm", "macros"] }
+rdump = { git = "https://github.com/Chipskein/rdump.git"}
