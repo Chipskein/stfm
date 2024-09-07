@@ -2,9 +2,11 @@
 use crate::files::*;
 use ::std::path::PathBuf;
 use ratatui::widgets::{ListState, ScrollbarState};
+use rdump::dump;
 use std::env::current_dir;
 use std::sync::{mpsc,Mutex,Arc};
 
+extern crate rdump;
 
 
 
@@ -170,10 +172,15 @@ impl App {
                     self.current_screen = CurrentScreen::Preview;
                     self.preview_string = match read_file(&file.full_path) {
                         Ok(content) => content,
-                        Err(e) => {
-                            self.error_message = Some(e.to_string());
-                            self.current_screen = CurrentScreen::ErrorPopUp;
-                            return;
+                        Err(_) => {
+                            match dump(PathBuf::from(&file.full_path),true){
+                                Ok(content)=>content,
+                                Err(e)=>{
+                                    self.error_message = Some(e.to_string());
+                                    self.current_screen = CurrentScreen::ErrorPopUp;
+                                    return;
+                                }
+                            }
                         }
                     };
                     self.v_preview_scroll_state = self
