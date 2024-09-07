@@ -84,9 +84,9 @@ https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
    
    * [ ] Add support for preview of non-UTF8 files(binaries)
 
-  * [ ] Fix perfomance problems of rdump
+   * [ ] Fix perfomance problems of rdump
     
-        * [ ] Loading chunks instead of the whole file?
+      * [ ] Loading chunks instead of the whole file?
 
    * [ ] Add support for preview of non-UTF8 files(images)
 
