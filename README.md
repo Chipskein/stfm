@@ -7,7 +7,12 @@
 ### Descrption
 STFM is a simple terminal-based file manager that lets you navigate through your file system and perform basic file operations.
 
-### Demo
+### Demos
+
+##### Demo Image's and Binaries Preview
+
+https://github.com/user-attachments/assets/4cc371d1-d970-4c29-b712-ee6c4a61266a
+
 https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
 
 ### Install
