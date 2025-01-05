@@ -1,3 +1,4 @@
+use std::{sync::mpsc, thread};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect}, style::{Color, Style}, text::{Span, Text}, widgets::{
         Block, Borders, Clear, LineGauge, List, ListDirection, ListItem, Paragraph, Scrollbar, ScrollbarOrientation,Wrap
@@ -144,7 +145,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     }
     
     match app.current_screen {
-        
+
         CurrentScreen::IsNewFileADir => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
@@ -379,49 +380,73 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
         CurrentScreen::ShowImage => {
             frame.render_widget(Clear, frame.area());
-            let area = centered_rect(25, 50, frame.area());
-            let chunks_pop_up = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
-                .split(area);
-            let popup_block = Block::default()
-                .title(format!("Image: {}", app.selected_file.clone().unwrap().full_path))
-                .style(Style::default());
-            let desc_text = Text::styled(
-                " Press any key to close the image",
-                Style::default(),
-            );
-            let desc_paragraph = Paragraph::new(desc_text)
-                .block(popup_block)
-                .wrap(Wrap { trim: false });
+            let area = centered_rect(30, 50, frame.area());
+            let chunks_pop_up = Layout::default().direction(Direction::Vertical).constraints([Constraint::Percentage(20), Constraint::Percentage(80)]).split(area);
+            let popup_block = Block::default().title(format!("Image: {}", app.selected_file.clone().unwrap().full_path)).style(Style::default());
+            let desc_text = Text::styled(" Press any key to close the image",Style::default());
+            let desc_paragraph = Paragraph::new(desc_text).block(popup_block).wrap(Wrap { trim: false });
             frame.render_widget(desc_paragraph, chunks_pop_up[0]);
+            
+            if app.image_receiver.is_none() && app.image.is_none() {
+                let (sender, receiver) = mpsc::channel();
+                app.image_receiver = Some(receiver);
+                let selected_file_path = app.selected_file.clone().unwrap().full_path.clone();
+                thread::spawn(move || {
+                    let dyn_img = match image::ImageReader::open(selected_file_path) {
+                        Ok(reader) => match reader.decode() {
+                            Ok(img) => img,
+                            Err(_) => {
+                                sender.send(None).unwrap();
+                                return;
+                            }
+                        },
+                        Err(_) => {
+                            sender.send(None).unwrap();
+                            return;
+                        }
+                    };
+                    let resized_img = dyn_img.resize(800, 800, Nearest);
+                    sender.send(Some(resized_img)).unwrap();
+                });
+            }
+            if let Some(receiver) = &app.image_receiver {
+                match receiver.try_recv() {
+                    Ok(Some(resized_img)) => {
+                        app.image = Some(resized_img);
+                        app.image_receiver = None;
+                    }
+                    Ok(None) => {
+                        app.error_message = Some("Failed to load or resize the image.".to_string());
+                        app.current_screen = CurrentScreen::ErrorPopUp;
+                        app.image_receiver = None;
+                        app.image = None;
+                    }
+                    Err(mpsc::TryRecvError::Empty) => {}
+                    Err(mpsc::TryRecvError::Disconnected) => {
+                        app.error_message = Some("Image processing thread disconnected.".to_string());
+                        app.current_screen = CurrentScreen::ErrorPopUp;
+                        app.image_receiver = None;
+                    }
+                }
+            }
 
-            let dyn_img = match image::ImageReader::open(app.selected_file.clone().unwrap().full_path) {
-                Ok(reader) => match reader.decode() {
-                    Ok(img) => img,
+            if let Some(ref dyn_img) = app.image {
+                let picker = match Picker::from_query_stdio() {
+                    Ok(picker) => picker,
                     Err(err) => {
-                        app.error_message = Some(format!(" {} Unsupported terminal emulator(try kitty)", err));
+                        app.error_message = Some(format!(" {} Unsupported terminal emulator (try kitty)", err));
                         app.current_screen = CurrentScreen::ErrorPopUp;
                         return;
                     }
-                },
-                Err(err) => {
-                    app.error_message = Some(format!(" {} Unsupported terminal emulator(try kitty)", err));
-                    app.current_screen = CurrentScreen::ErrorPopUp;
-                    return;
-                }
-            };
-            let picker = match Picker::from_query_stdio(){
-                Ok(picker) => picker,
-                Err(err) => {
-                    app.error_message = Some(format!(" {} Unsupported terminal emulator(try kitty)", err));
-                    app.current_screen = CurrentScreen::ErrorPopUp;
-                    return;
-                }
-            };
-            let mut image = picker.new_resize_protocol(dyn_img.resize(800, 800, Nearest));
-            let wimage = StatefulImage::default();
-            frame.render_stateful_widget(wimage, chunks_pop_up[1], &mut image);
+                };
+                let mut image = picker.new_resize_protocol(dyn_img.clone());
+                let wimage = StatefulImage::default();
+                frame.render_stateful_widget(wimage, chunks_pop_up[1], &mut image);
+            } else {
+                let loading_text = Text::styled("Loading image...", Style::default());
+                let loading_paragraph = Paragraph::new(loading_text).wrap(Wrap { trim: false });
+                frame.render_widget(loading_paragraph, chunks_pop_up[1]);
+            }
         }
         
         _ => {}

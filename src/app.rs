@@ -56,6 +56,8 @@ pub struct App {
     pub progress_sender: Option<mpsc::Sender<u64>>,
     pub progress_receiver: Option<mpsc::Receiver<u64>>,
 
+    pub image_receiver: Option<mpsc::Receiver<Option<image::DynamicImage>>>,
+    pub image: Option<image::DynamicImage>,
     /*LINK */
     pub link_file: Option<StfmFile>, // the file to be linked
     
@@ -87,6 +89,8 @@ impl App {
             readed_bytes:0,
             progress_sender: None,
             progress_receiver: None,
+            image_receiver: None,
+            image: None,
             link_file: None,
         };
         a.list_state.select_first();
@@ -367,6 +371,8 @@ impl App {
         self.preview_string.clear();
         self.progress_sender= None;
         self.progress_receiver= None;
+        self.image_receiver= None;
+        self.image= None;
         self.current_screen = CurrentScreen::Main;
     }
 
