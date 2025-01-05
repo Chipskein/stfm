@@ -19,11 +19,15 @@ https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
   * Navigate across your file system
   * List file entries in current directory
   * Preview text files
+  * Preview binaries in [hexdump](https://en.wikipedia.org/wiki/Hex_dump) format
+  * Preview image([See for supported terminal emulators](https://github.com/benjajaja/ratatui-image/blob/master/README.md#compatibility-matrix))
   * Create files/directories in current directory
   * Rename file
   * Search entries by name
   * Copy file
   * Delete file
+  * Create Links
+
 
 ### Key controls
 
