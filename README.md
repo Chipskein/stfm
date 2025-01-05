@@ -73,7 +73,7 @@ https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
    * [x] Add Help PopUp
    * [x] Add Different Color Scheme for entries
    * [x] Fix files with wrong Extension
-   * [x] Add syslink support
+   * [x] Add links support
    * [x] Add Error handling
    * [x] Fix input height bug
    * [x] Display metadata(size,is_dir,modified_at) info in top bar
@@ -84,5 +84,3 @@ https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
    * [X] Add support for preview of non-UTF8 files(binaries)
    * [ ] Add support for preview of non-UTF8 files(images)
       * [ ] Implement image(png,jpeg,jpg) to ASCII ART
-   * [ ] Add support to create syslinks
-

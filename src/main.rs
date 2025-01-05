@@ -132,6 +132,20 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             }
                         }
 
+                        KeyCode::Char('l') => match app.selected_file.clone() {
+                            Some(_) => {
+                                if app.link_file.is_none() {
+                                    app.link_file = app.selected_file.clone();
+                                } else {
+                                    app.current_screen = CurrentScreen::ConfirmLinkFile;
+                                }
+                            }
+                            None => {
+                                app.link_file=None;
+                                app.error_message = Some("No file selected".to_string());
+                                app.current_screen = CurrentScreen::ErrorPopUp;
+                            }
+                        }
                         KeyCode::Char('/') => {
                             app.search_input.clear();
                             app.current_screen = CurrentScreen::Search;
@@ -294,6 +308,16 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                             app.copy();
                         }
                         _ => {
+                            app.current_screen = CurrentScreen::Main;
+                        }
+                    }
+
+                    CurrentScreen::ConfirmLinkFile => match key.code {
+                        KeyCode::Char('y') => {
+                            app.link();
+                        }
+                        _ => {
+                            app.link_file=None;
                             app.current_screen = CurrentScreen::Main;
                         }
                     }

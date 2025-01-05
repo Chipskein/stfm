@@ -216,3 +216,11 @@ pub fn copy_file(from_path:&PathBuf,to_path:&PathBuf,progress_sender: mpsc::Send
         Err(e)=>return Err(e),
     }
 }
+
+///Create a link
+pub fn link_entry(from_path:&PathBuf,to_path:&PathBuf) -> Result<bool, Error>{
+    match std::fs::hard_link(from_path,to_path){
+        Ok(_)=>{Ok(true)},
+        Err(e)=>{Err(e)}
+    }
+}

@@ -22,6 +22,7 @@ pub enum CurrentScreen {
     ErrorPopUp,
     Help,
     ConfirmCopyingPopUp,
+    ConfirmLinkFile,
     CopyingProgressBar,
 }
 #[derive(Debug)]
@@ -54,6 +55,10 @@ pub struct App {
     pub progress_sender: Option<mpsc::Sender<u64>>,
     pub progress_receiver: Option<mpsc::Receiver<u64>>,
 
+    /*LINK */
+    pub link_file: Option<StfmFile>, // the file to be linked
+    
+
 }
 
 impl App {
@@ -81,6 +86,7 @@ impl App {
             readed_bytes:0,
             progress_sender: None,
             progress_receiver: None,
+            link_file: None,
         };
         a.list_state.select_first();
         a.index_selected = a.list_state.selected();
@@ -395,6 +401,26 @@ impl App {
                 // After spawning the thread, set the error_message and current_screen fields
                 self.error_message = error_message.lock().unwrap().clone();
                 self.current_screen = current_screen.lock().unwrap().clone();
+            }
+            None => {}
+        }
+    }
+
+    pub fn link(&mut self){
+        match self.link_file.clone() {
+            Some(file) => {
+                let to= self.current_dir.clone().join(file.name.clone());
+                let from = PathBuf::from(&file.full_path);
+                match link_entry(&from, &to){
+                    Ok(_) => {}
+                    Err(e) => {
+                        self.error_message = Some(e.to_string());
+                        self.current_screen = CurrentScreen::ErrorPopUp;
+                        return;
+                    }
+                }
+                self.link_file= None;
+                self.reset();
             }
             None => {}
         }

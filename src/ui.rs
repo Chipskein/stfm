@@ -238,6 +238,29 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(desc_paragraph, area);
         }
 
+        CurrentScreen::ConfirmLinkFile => {
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(40, 20, frame.area());
+            let file = match app.link_file.clone() {
+                Some(file) => file,
+                None => {
+                    app.current_screen = CurrentScreen::Main;
+                    return;
+                }
+            };
+            let title_pop_up = format!("Link File {}", file.full_path);
+            let text = format!("Are you sure you want to create a SysLink of this file to {}? [y/n]",app.current_dir.clone().join(file.name).to_string_lossy());
+            let popup_block = Block::default()
+                .title(title_pop_up)
+                .borders(Borders::ALL)
+                .style(Style::default());
+            let desc_text = Text::styled(text, Style::default());
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, area);
+        }
+
         CurrentScreen::CopyingProgressBar => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(50, 25, frame.area());
@@ -340,7 +363,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(60, 60, frame.area());
             let title_pop_up = format!("Help");
-            let text = format!(" Welcome and thank you for using STFM! :3\n This is a simple file manager that allows you to navigate through your files and directories\n You can navigate through the files using the arrow keys\n You can open a file or directory by pressing 'Enter' or 'Right Arrow'\n You can go back to the previous directory by pressing 'Backspace' or 'Left' key\n You can see a preview of the file by selecting it\n With preview open you can scroll down by pressing 'Down' and scroll up by pressing 'Up'\n With preview open you can scroll right by pressing 'Right' and scroll left by pressing 'Left'\n With preview open you can go back to the main screen by pressing 'q' or 'Esc'\n You can search for a file or directory by pressing '/' and typing the name of the file\n With search open you can go back to the main screen by pressing 'Esc'\n With search on press enter to show filtered files\n You can create a new file/dir by pressing 'n'\n You can delete a file/dir by pressing 'd'\n You can rename a file/dir by pressing 'r'\n You can toggle hidden files by pressing '.'\n You can scroll down by pressing 'PageDown'\n You can scroll up by pressing 'PageUp'\n You can copy a file by pressing 'c'\n You can paste a file by pressing 'p'\n You can exit the application by pressing 'q' or 'Esc'\n");
+            let text = format!(" Welcome and thank you for using STFM! :3\n This is a simple file manager that allows you to navigate through your files and directories\n You can navigate through the files using the arrow keys\n You can open a file or directory by pressing 'Enter' or 'Right Arrow'\n You can go back to the previous directory by pressing 'Backspace' or 'Left' key\n You can see a preview of the file by selecting it\n With preview open you can scroll down by pressing 'Down' and scroll up by pressing 'Up'\n With preview open you can scroll right by pressing 'Right' and scroll left by pressing 'Left'\n With preview open you can go back to the main screen by pressing 'q' or 'Esc'\n You can search for a file or directory by pressing '/' and typing the name of the file\n With search open you can go back to the main screen by pressing 'Esc'\n With search on press enter to show filtered files\n You can create a new file/dir by pressing 'n'\n You can delete a file/dir by pressing 'd'\n You can rename a file/dir by pressing 'r'\n You can toggle hidden files by pressing '.'\n You can scroll down by pressing 'PageDown'\n You can scroll up by pressing 'PageUp'\n You can copy a file by pressing 'c'\n You can paste a file by pressing 'p'\n You can create a link to a file by pressing 'l' to select the file and 'l' again to select a location\n You can exit the application by pressing 'q' or 'Esc'\n");
             let popup_block = Block::default()
                 .title(title_pop_up)
                 .borders(Borders::ALL)
