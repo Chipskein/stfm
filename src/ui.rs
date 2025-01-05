@@ -144,6 +144,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     }
     
     match app.current_screen {
+        
         CurrentScreen::IsNewFileADir => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(40, 20, frame.area());
@@ -376,30 +377,53 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(desc_paragraph, area);
         }
 
-
         CurrentScreen::ShowImage => {
             frame.render_widget(Clear, frame.area());
             let area = centered_rect(25, 50, frame.area());
-            let picker = Picker::from_query_stdio();
+            let chunks_pop_up = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
+                .split(area);
+            let popup_block = Block::default()
+                .title(format!("Image: {}", app.selected_file.clone().unwrap().full_path))
+                .style(Style::default());
+            let desc_text = Text::styled(
+                " Press any key to close the image",
+                Style::default(),
+            );
+            let desc_paragraph = Paragraph::new(desc_text)
+                .block(popup_block)
+                .wrap(Wrap { trim: false });
+            frame.render_widget(desc_paragraph, chunks_pop_up[0]);
+
             let dyn_img = match image::ImageReader::open(app.selected_file.clone().unwrap().full_path) {
                 Ok(reader) => match reader.decode() {
                     Ok(img) => img,
                     Err(err) => {
-                        app.error_message = Some(format!("Failed to decode image: {}", err));
+                        app.error_message = Some(format!(" {} Unsupported terminal emulator(try kitty)", err));
+                        app.current_screen = CurrentScreen::ErrorPopUp;
                         return;
                     }
                 },
                 Err(err) => {
-                    app.error_message = Some(format!("Failed to open image: {}", err));
+                    app.error_message = Some(format!(" {} Unsupported terminal emulator(try kitty)", err));
+                    app.current_screen = CurrentScreen::ErrorPopUp;
                     return;
                 }
             };
-            let picker = picker.unwrap();
-            let mut image = picker.new_resize_protocol(dyn_img.resize(600, 600, Nearest));
+            let picker = match Picker::from_query_stdio(){
+                Ok(picker) => picker,
+                Err(err) => {
+                    app.error_message = Some(format!(" {} Unsupported terminal emulator(try kitty)", err));
+                    app.current_screen = CurrentScreen::ErrorPopUp;
+                    return;
+                }
+            };
+            let mut image = picker.new_resize_protocol(dyn_img.resize(800, 800, Nearest));
             let wimage = StatefulImage::default();
-            frame.render_stateful_widget(wimage, area, &mut image);
-           
+            frame.render_stateful_widget(wimage, chunks_pop_up[1], &mut image);
         }
+        
         _ => {}
     }
 
