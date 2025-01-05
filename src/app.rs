@@ -2,7 +2,7 @@
 use crate::files::*;
 use ::std::path::PathBuf;
 use ratatui::widgets::{ListState, ScrollbarState};
-
+use std::collections::HashSet;
 use std::env::current_dir;
 use std::sync::{mpsc,Mutex,Arc};
 extern crate rdump;
@@ -24,6 +24,7 @@ pub enum CurrentScreen {
     ConfirmCopyingPopUp,
     ConfirmLinkFile,
     CopyingProgressBar,
+    ShowImage,
 }
 #[derive(Debug)]
 pub struct App {
@@ -179,6 +180,12 @@ impl App {
                     self.preview_string = match read_file(&file.full_path) {
                         Ok(content) => content,
                         Err(e) => {
+                            let image_extensions: HashSet<&str> = ["jpg", "png", "webp", "jpeg"].iter().cloned().collect();
+                            if image_extensions.contains(file.extension.to_lowercase().as_str()) {
+                                self.current_screen = CurrentScreen::ShowImage;
+                                return;
+                            }
+
                             let mut limit=16*100;
                             let max_limit=((file.size as f64/16.0).round()*16.0) as u64;
                             if file.size<limit{

@@ -3,6 +3,7 @@ use ratatui::{
         Block, Borders, Clear, LineGauge, List, ListDirection, ListItem, Paragraph, Scrollbar, ScrollbarOrientation,Wrap
     }, Frame
 };
+use ratatui_image::{picker::Picker,  FilterType::Nearest, StatefulImage};
 
 use crate::app::{App, CurrentScreen};
 
@@ -375,6 +376,30 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             frame.render_widget(desc_paragraph, area);
         }
 
+
+        CurrentScreen::ShowImage => {
+            frame.render_widget(Clear, frame.area());
+            let area = centered_rect(25, 50, frame.area());
+            let picker = Picker::from_query_stdio();
+            let dyn_img = match image::ImageReader::open(app.selected_file.clone().unwrap().full_path) {
+                Ok(reader) => match reader.decode() {
+                    Ok(img) => img,
+                    Err(err) => {
+                        app.error_message = Some(format!("Failed to decode image: {}", err));
+                        return;
+                    }
+                },
+                Err(err) => {
+                    app.error_message = Some(format!("Failed to open image: {}", err));
+                    return;
+                }
+            };
+            let picker = picker.unwrap();
+            let mut image = picker.new_resize_protocol(dyn_img.resize(600, 600, Nearest));
+            let wimage = StatefulImage::default();
+            frame.render_stateful_widget(wimage, area, &mut image);
+           
+        }
         _ => {}
     }
 

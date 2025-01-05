@@ -5,5 +5,7 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4.38"
-ratatui = { version = "0.28.0", features = ["all-widgets", "crossterm", "macros"] }
+image = "0.25.5"
+ratatui = { version = "0.29.0", features = ["all-widgets", "crossterm", "macros"] }
+ratatui-image = "4.2.0"
 rdump = { git = "https://github.com/Chipskein/rdump.git"}
