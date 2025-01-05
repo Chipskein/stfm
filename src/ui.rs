@@ -1,4 +1,4 @@
-use std::{sync::mpsc, thread};
+use std::{io::Error, sync::mpsc, thread};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect}, style::{Color, Style}, text::{Span, Text}, widgets::{
         Block, Borders, Clear, LineGauge, List, ListDirection, ListItem, Paragraph, Scrollbar, ScrollbarOrientation,Wrap
@@ -396,24 +396,47 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                         Ok(reader) => match reader.decode() {
                             Ok(img) => img,
                             Err(_) => {
-                                sender.send(None).unwrap();
+                                match sender.send(Some(Err(Error::new(std::io::ErrorKind::InvalidData, "Could not read image file")))) {
+                                    Ok(_) => (),
+                                    Err(err) => {
+                                        eprintln!("Failed to send the error message to the receiver: {}", err);
+                                    }
+                                }
                                 return;
                             }
                         },
-                        Err(_) => {
-                            sender.send(None).unwrap();
+                        Err(e) => {
+                            match sender.send(Some(Err(e))){
+                                Ok(_) => (),
+                                Err(err) => {
+                                    eprintln!("Failed to send the error message to the receiver: {}", err);
+                                }
+                            }
                             return;
                         }
                     };
                     let resized_img = dyn_img.resize(800, 800, Nearest);
-                    sender.send(Some(resized_img)).unwrap();
+                    match sender.send(Some(Ok(resized_img))){
+                        Ok(_) => (),
+                        Err(err) => {
+                            eprintln!("Failed to send the resized image to the receiver: {}", err);
+                        }
+                    };
                 });
             }
             if let Some(receiver) = &app.image_receiver {
                 match receiver.try_recv() {
                     Ok(Some(resized_img)) => {
-                        app.image = Some(resized_img);
-                        app.image_receiver = None;
+                        match resized_img {
+                            Ok(img) => {
+                                app.image = Some(img);
+                                app.image_receiver = None;        
+                            }
+                            Err(e) => {
+                                app.error_message = Some(format!("Failed to load or resize the image: {}", e));
+                                app.current_screen = CurrentScreen::ErrorPopUp;
+                            }
+                        }
                     }
                     Ok(None) => {
                         app.error_message = Some("Failed to load or resize the image.".to_string());

@@ -1,5 +1,6 @@
 #[allow(dead_code)]
 use crate::files::*;
+use std::io::Error;
 use ::std::path::PathBuf;
 use ratatui::widgets::{ListState, ScrollbarState};
 use std::collections::HashSet;
@@ -56,8 +57,9 @@ pub struct App {
     pub progress_sender: Option<mpsc::Sender<u64>>,
     pub progress_receiver: Option<mpsc::Receiver<u64>>,
 
-    pub image_receiver: Option<mpsc::Receiver<Option<image::DynamicImage>>>,
+    pub image_receiver: Option<mpsc::Receiver<Option<Result<image::DynamicImage,Error>>>>,
     pub image: Option<image::DynamicImage>,
+
     /*LINK */
     pub link_file: Option<StfmFile>, // the file to be linked
     
