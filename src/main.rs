@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<bool> {
     let mut last_tick = Instant::now();
-    let tick_rate = Duration::from_millis(1); // Adjust tick rate for UI refresh
+    let tick_rate = Duration::from_millis(15); // Adjust tick rate for UI refresh
     loop {
         terminal.draw(|f| ui(f, app))?;
         if let Some(ref receiver) = app.progress_receiver {

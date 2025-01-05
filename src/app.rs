@@ -5,10 +5,9 @@ use ratatui::widgets::{ListState, ScrollbarState};
 
 use std::env::current_dir;
 use std::sync::{mpsc,Mutex,Arc};
-/*FIXME: performance issue here when reading large files,try to load chunks of the file instead
 extern crate rdump;
-use rdump::dump;
-*/
+use rdump::dump_with_offset;
+
 
 
 #[derive(Debug,Clone)]
@@ -174,17 +173,18 @@ impl App {
                     self.preview_string = match read_file(&file.full_path) {
                         Ok(content) => content,
                         Err(e) => {
-                            /*
-                                FIXME: performance issue here when reading large files,try to load chunks of the file instead
-                                match dump(PathBuf::from(&file.full_path),true){
-                                    Ok(content)=>content,
-                                    Err(e)=>{
-                                        self.error_message = Some(e.to_string());
-                                        self.current_screen = CurrentScreen::ErrorPopUp;
-                                        return;
-                                    }
+                            let mut limit=16*100;
+                            let max_limit=((file.size as f64/16.0).round()*16.0) as u64;
+                            if file.size<limit{
+                                limit=max_limit;
+                            }
+                            if let Ok(content) = dump_with_offset(PathBuf::from(&file.full_path),0,limit,true){
+                                self.preview_string=content;
+                                if limit!=max_limit{
+                                    self.preview_string.push_str(&format!("\n ... More {} bytes", max_limit - limit));
                                 }
-                             */
+                                return
+                            }
                             self.error_message = Some(e.to_string());
                             self.current_screen = CurrentScreen::ErrorPopUp;
                             return;
@@ -217,6 +217,23 @@ impl App {
     pub fn scroll_down(&mut self,position: usize) {
         self.vertical_scroll = self.vertical_scroll.saturating_add(position);
         self.v_preview_scroll_state = self.v_preview_scroll_state.position(self.vertical_scroll);
+        
+        /*RATATUI UI BUG BROKES SCROLLING
+        if self.preview_is_non_utf8 {
+            self.preview_offset+=20;
+            if self.preview_offset > self.selected_file.as_ref().unwrap().size{
+                self.preview_offset=((self.selected_file.as_ref().unwrap().size as f64/16.0).round()*16.0) as u64;
+            }
+            self.preview_string = match dump_with_offset(PathBuf::from(&self.selected_file.as_ref().unwrap().full_path),0,16*self.preview_offset,true){
+                Ok(content)=>content,
+                Err(e)=>{
+                    self.error_message = Some(e.to_string());
+                    self.current_screen = CurrentScreen::ErrorPopUp;
+                    return;
+                }
+            };
+        }
+        */
     }
 
     pub fn scroll_left(&mut self) {

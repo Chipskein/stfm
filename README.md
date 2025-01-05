@@ -81,20 +81,8 @@ https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
    * [x] Add Scroll PageUp and Down
    * [x] Implement Copy file function
    * [x] Fix progress bar
-   
-   * [ ] Add support for preview of non-UTF8 files(binaries)
-      
-      * [X] Loading chunks instead of the whole file?
-
+   * [X] Add support for preview of non-UTF8 files(binaries)
    * [ ] Add support for preview of non-UTF8 files(images)
-
       * [ ] Implement image(png,jpeg,jpg) to ASCII ART
-
-      * [ ] Test performance
-
    * [ ] Add support to create syslinks
-
-   * [ ] Add file mime type identifier
-
-      * Use external crate?
 
