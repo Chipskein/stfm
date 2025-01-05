@@ -15,8 +15,12 @@ https://github.com/user-attachments/assets/4cc371d1-d970-4c29-b712-ee6c4a61266a
 
 https://github.com/user-attachments/assets/c8ee1dc7-dc14-4831-90d1-11847145a8b1
 
+### Clone repo
+    git clone https://github.com/Chipskein/stfm.git
 ### Install
-    cargo build --release
+    cargo build --release 
+### Copy binary to /bin
+    cp target/release/stfm /bin/stfm
 ### Usage
     stfm
 
